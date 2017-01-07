@@ -4,15 +4,22 @@ def readfile(filename):
   str = file.read() #string with the whole text
   return str
 
-def writefile(filename, words):
+def writefile(filename, string):
   f = open(filename, 'w')
-  f.write(words)
+  f.write(string)
   f.close()
 
+# returns a list with the frequencies of each letter in the string
+def frequency(string):
+  freq, leng = [], len(string)
+  for i in range(26):
+    freq.append(string.count(chr(ord('a')+i))*1.0/leng)
+  return freq 
+  
 # given a tree in this format: {0:'a', 10:'b', 11:'c'}
 # and words being the string read from the file
 def encode(tree,words):
-  inv_tree = {v:k for k,v in tree.items()}
+  inv_tree = {value:key for key,value in tree.items()}
   code = ''
   for let in words:
     if let in inv_tree:
@@ -29,7 +36,7 @@ if __name__ == "__main__":
   # example cases for encoding
   tree = {0:'a', 10:'b', 11:'c'}
   words = 'acbca' 
-  code =  encode(tree,words)
+  code = encode(tree,words)
   # print code
 
   # write in file
