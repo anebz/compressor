@@ -7,7 +7,7 @@ def openfile(filename):
 # given a tree in this format: {0:'a', 10:'b', 11:'c'}
 # and words being the string read from the file
 def encode(tree,words):
-	inv_tree = {v:k for k,v in tree.items()}
+  inv_tree = {v:k for k,v in tree.items()}
   code = ''
   for let in words:
     if let in inv_tree:
@@ -22,6 +22,6 @@ if __name__ == "__main__":
   
   # example cases
   tree = {0:'a', 10:'b', 11:'c'}
-	words = 'acbca' 
-	code =  encode(tree,words)
+  words = 'acbca' 
+  code =  encode(tree,words)
   # print code
