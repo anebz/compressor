@@ -30,12 +30,36 @@ def encode(tree,words):
     if let in inv_tree:
       code = code + str(inv_tree[let])
   return code
-
+ 
+# returns the second smallest element in a numeric list
+def second_smallest(numbers):
+    m1, m2 = float('inf'), float('inf')
+    for x in numbers:
+        if x <= m1:
+            m1, m2 = x, m1
+        elif x < m2:
+            m2 = x
+    return m2
 # returns a list with the Huffman-encoded ASCII table
 def ConstructHuffmanTree(text, count):
-  
-  
+  savedCoding = [''] * len(count) # hay que pasarlo a diccionario, mas que a vector
+  aux = count
+  for ii in range(len(count)):
+	dictValues = aux.values()
+	smallestElementValue = min(dictValues)
+	secondSmallestElementValue = second_smallest(dictValues)
+	for key,value in aux:
+	  if value == smallestElementValue or value == secondSmallestElementValue:
+	    # Aqui quiero hacer dos cosas. Primero, crear otro dicc llamado aux que tenga los mismos 
+		# elementos que count menos estos dos elementos, que estaran agrupados en un unico elemento
+		# que tenga los dos caracteres del nodo (ejemplo: si tiene a y b, seria un key ab) con value
+		# la suma de los values de cada key, asi hasta solo tener un unico nodo final. 
+		# Tambien mi idea es guardar en savedCoding dependiendo los keys que formen cada nodo la rama de codificacion
+		# '0' o '1', como los apuntes de clase
 
+	
+  
+# main
 if __name__ == "__main__":
   # open file
   file = 'text_sample.txt'
