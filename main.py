@@ -13,7 +13,6 @@ def writefile(filename, string):
   f.close()
 
 # returns a list with the frequencies of each letter in the string
-# returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
   for i in range(127):
@@ -22,7 +21,7 @@ def frequency(string):
   return freq
   
 # given a tree in this format: {0:'a', 10:'b', 11:'c'}
-# and words being the string, read from the file
+# and words being the string read from the file
 def encode(tree,words):
   inv_tree = {value:key for key,value in tree.items()}
   code = ''
@@ -33,15 +32,10 @@ def encode(tree,words):
  
 # returns the second smallest element in a numeric list
 def second_smallest(numbers):
-    m1, m2 = float('inf'), float('inf')
-    for x in numbers:
-        if x <= m1:
-            m1, m2 = x, m1
-        elif x < m2:
-            m2 = x
-    return m2
+  return sorted(numbers,key=float)[1]
+
 # returns a list with the Huffman-encoded ASCII table
-def ConstructHuffmanTree(text, count):
+def constructHuffmanTree(text, count):
   savedCoding = [''] * len(count) # hay que pasarlo a diccionario, mas que a vector
   aux = count
   for ii in range(len(count)):
