@@ -12,8 +12,8 @@ def writefile(filename, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = [], len(string)
-  for i in range(26):
-    freq.append(string.count(chr(ord('a')+i))*1.0/leng)
+  for i in range(127):
+    freq.append(string.count(chr(i))*1.0/leng)
   return freq 
   
 # given a tree in this format: {0:'a', 10:'b', 11:'c'}
