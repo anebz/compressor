@@ -17,7 +17,7 @@ def frequency(string):
   return freq 
   
 # given a tree in this format: {0:'a', 10:'b', 11:'c'}
-# and words being the string read from the file
+# and words being the string, read from the file
 def encode(tree,words):
   inv_tree = {value:key for key,value in tree.items()}
   code = ''
@@ -31,6 +31,7 @@ if __name__ == "__main__":
   # open file
   file = 'text_sample.txt'
   text = openfile(file)
+  file.close()
   #print text
   
   # example cases for encoding
