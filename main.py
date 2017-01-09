@@ -72,20 +72,17 @@ def constructHuffmanTree(text, count):
         if flag == 1:
           node1 = key
           for jj in key:
-            savedCoding[jj] = savedCoding[jj] + '0'
+            savedCoding[jj] = '0' + savedCoding[jj]
         elif flag == 2:
           node2 = key
           for jj in key:
-            savedCoding[jj] = savedCoding[jj] + '1'
+            savedCoding[jj] = '1' + savedCoding[jj]
           break
     aux[node1] = aux[node1] + aux[node2]
     newLetter = node1 + node2
     aux[newLetter] = aux[node1]
     del aux[node1]
     del aux[node2]
-  for key in savedCoding.keys():
-    a = list(reversed(savedCoding[key]))
-    savedCoding[key] = ''.join(a)
   return savedCoding
 
 	
