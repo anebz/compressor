@@ -1,29 +1,20 @@
 # Imports
 import operator
-import pickle
+import json
+import ast
 
 # Global Variables
-zeroes = ''
+zeros = 0
 
 # should be a .txt
 def readfile(filename):
   return open(filename, encoding='utf-8').read()
 
-def writefile(filename, string):
-  f = open(filename, mode='w', encoding='utf-8')
+def writefile(filename, tree, string):
+  f = open(filename, 'w', encoding='utf-8')
+  json.dump(tree, f) # dump tree
   f.write(string)
   f.close()
-
-# save other relevant information
-def write_data(dic):
-  dic[999] = zeroes
-  with open('important_data.pickle', 'wb') as handle:
-    pickle.dump(dic, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-# read the important information. FILE MUST EXIST
-def read_data():
-  with open('important_data.pickle', 'rb') as handle:
-    return pickle.load(handle)
 
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
@@ -32,30 +23,6 @@ def frequency(string):
     if string.count(chr(i)):
       freq[chr(i)] = string.count(chr(i))*1.0/leng
   return freq
-  
-# given a tree in this format: {0:'a', 10:'b', 11:'c'}
-# and words being the string read from the file
-def encode(tree,words):
-  #inv_tree = {value:key for key,value in tree.items()}
-  code = ''
-  for let in words:
-    if let in tree:
-      code = code + str(tree[let])
-  return code
-
-def code_to_string(code):
-  global zeroes 
-  zeroes = len(code)%8
-  compressed = ''
-  if zeroes != 0: # not a multiple of 8
-    code = code + '0'*zeroes # add zeroes, redundancies
-  for i in range(0,len(code),8):
-    compressed = compressed + chr(int(code[i:i+8],2))
-  return compressed
- 
-# returns the second smallest element in a numeric list
-def second_smallest(numbers):
-  return sorted(numbers,key=float)[1]
 
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, count):
@@ -85,9 +52,40 @@ def constructHuffmanTree(text, count):
     del aux[node2]
   return savedCoding
 
-	
+# given a tree in this format: {0:'a', 10:'b', 11:'c'}
+# and words being the string read from the file
+def encode(tree,words):
+  #inv_tree = {value:key for key,value in tree.items()}
+  code = ''
+  for let in words:
+    if let in tree:
+      code = code + str(tree[let])
+  return code
+
+def code_to_string(code):
+  global zeros 
+  zeros = len(code)%8
+  compressed = ''
+  if zeros != 0: # not a multiple of 8
+    code = code + '0'*zeros # add zeroes, redundancies
+  for i in range(0,len(code),8):
+    compressed = compressed + chr(int(code[i:i+8],2))
+  return compressed
+ 
+# returns the second smallest element in a numeric list
+def second_smallest(numbers):
+  return sorted(numbers,key=float)[1]
+
+def string_to_code(text):
+  code = ''
+  for e in text:
+    code += "{0:b}".format(ord(e))
+  return code
+   
   
-# main
+  
+##ENCODING
+
 # open file
 file = 'text_sample.txt'
 text = readfile(file)
@@ -95,7 +93,7 @@ text = readfile(file)
 #Constructing the tree
 characterCounter = frequency(text)
 tree = constructHuffmanTree(text, characterCounter)
-print(tree)
+#print(tree)
 
 # example cases for encoding
 #tree = {0:'a', 10:'b', 11:'c'}
@@ -105,19 +103,28 @@ code = encode(tree,words)
 #print (code)
 
 compressed = code_to_string(code)
-print(compressed)
+#print(compressed)
 
 print(len(text),len(compressed))
 
 print("Compresion rate:", len(compressed)/len(text))
 
-#write_data(tree)
-#print (read_data())
-
 # write in file
 extension = 'hff'
 ex_filename = 'result' + '.' + extension
-ex = open('text_sample.txt',encoding='utf-8').read() #example to write
-writefile(ex_filename, ex)
+tree['999'] = zeros
+writefile(ex_filename, tree, compressed)
 
-#print (zeroes)
+## DECODING
+file = 'result.hff'
+text = readfile(file)
+tree2 = ast.literal_eval(text[:text.find('}')+1])
+#print(tree2)
+zeros2 = tree2['999']
+
+text = text[text.find('}'):(len(text)-zeros2+1)] # the encoded text
+code2 = string_to_code(text)
+
+#decoded = decode(tree2, code)
+
+#print(decoded)
