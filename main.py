@@ -69,21 +69,15 @@ def constructHuffmanTree(text, count):
     for key,value in aux.items():
       if value == smallestElementValue or value == secondSmallestElementValue:
         flag += 1
-        # Aqui quiero hacer dos cosas. Primero, crear otro dicc llamado aux que tenga los mismos 
-        # elementos que count menos estos dos elementos, que estaran agrupados en un unico elemento
-        # que tenga los dos caracteres del nodo (ejemplo: si tiene a y b, seria un key ab) con value
-        # la suma de los values de cada key, asi hasta solo tener un unico nodo final. 
-        # Tambien mi idea es guardar en savedCoding dependiendo los keys que formen cada nodo la rama de codificacion
-	# '0' o '1', como los apuntes de clase
-      if flag == 1:
-        node1 = key
-        for jj in key:
-          savedCoding[jj] = savedCoding[jj] + '0'
-      elif flag == 2:
-        node2 = key
-        for jj in key:
-          savedCoding[jj] = savedCoding[jj] + '1'
-        break
+        if flag == 1:
+          node1 = key
+          for jj in key:
+            savedCoding[jj] = savedCoding[jj] + '0'
+        elif flag == 2:
+          node2 = key
+          for jj in key:
+            savedCoding[jj] = savedCoding[jj] + '1'
+          break
     aux[node1] = aux[node1] + aux[node2]
     newLetter = node1 + node2
     aux[newLetter] = aux[node1]
