@@ -22,6 +22,8 @@ def frequency(string):
   for i in range(127):
     if string.count(chr(i)):
       freq[chr(i)] = string.count(chr(i))*1.0/leng
+  if string.count('’'):
+    freq['’'] = string.count('’')*1.0/leng
   return freq
 
 # returns a list with the Huffman-encoded ASCII table
@@ -75,19 +77,12 @@ def code_to_string(code):
 #Decoding function
 def decode(tree2, code):
   tree = {value:key for key,value in tree2.items()}
-  print(tree)
-  text = ''
-  add = ''
+  text,add = '',''
   for i in range(len(code)):    
     add += code[i]
-    if len(add) == 1:
-      if add in tree.keys():
-        text += tree[add]
-        add = ''
-    else:
-      if add in tree.keys():
-        text += tree[add]
-        add = ''
+    if add in tree.keys():
+      text += tree[add]
+      add = ''
   return text
 
 # returns the second smallest element in a numeric list
@@ -106,16 +101,16 @@ def string_to_code(text):
 
 # open file
 file = 'text_sample.txt'
-text = readfile(file)
+original_text = readfile(file)
 
 #Constructing the tree
-characterCounter = frequency(text)
-tree = constructHuffmanTree(text, characterCounter)
-#print(tree)
+characterCounter = frequency(original_text)
+tree = constructHuffmanTree(original_text, characterCounter)
+print(tree)
 
 # example cases for encoding
 #tree = {0:'a', 10:'b', 11:'c'}
-words = text
+words = original_text
 #words = 'acbcab' 
 code = encode(tree,words)
 #print (code)
@@ -123,9 +118,9 @@ code = encode(tree,words)
 compressed = code_to_string(code)
 #print(compressed)
 
-print(len(text),len(compressed))
+print(len(original_text),len(compressed))
 
-print("Compresion rate:", len(compressed)/len(text))
+print("Compresion rate:", len(compressed)/len(original_text))
 
 # write in file
 extension = 'hff'
@@ -135,15 +130,25 @@ writefile(ex_filename, tree, compressed)
 
 ## DECODING
 file = 'result.hff'
-text = readfile(file)
-tree2 = ast.literal_eval(text[:text.find('}')+1])
+text2 = readfile(file)
+tree2 = ast.literal_eval(text2[:text2.find('}')+1])
 #print(tree2)
 zeros2 = tree2['999']
 
-text = text[text.find('}'):(len(text)-zeros2+1)] # the encoded text
-code2 = string_to_code(text)
+text2 = text2[text2.find('}'):(len(text2)-zeros2+1)] # the encoded text
+code2 = string_to_code(text2)
 
 decoded = decode(tree2, code)
 
-print(len(decoded))
-print(len(words))
+print(len(decoded),len(original_text))
+
+f = open('decoded.txt', 'w', encoding='utf-8')
+f.write(decoded)
+f.close()
+
+for i in range(len(original_text)):
+  if decoded[i] != original_text[i]:
+    print(i,decoded[i],original_text[i])
+    break
+
+
