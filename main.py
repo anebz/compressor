@@ -7,13 +7,10 @@ zeroes = ''
 
 # should be a .txt
 def readfile(filename):
-  file = open(filename,'r') # 'r' for reading only
-  str = file.read() #string with the whole text
-  file.close()
-  return str
+  return open(filename, encoding='utf-8').read()
 
 def writefile(filename, string):
-  f = open(filename, 'w')
+  f = open(filename, mode='w', encoding='utf-8')
   f.write(string)
   f.close()
 
@@ -53,7 +50,7 @@ def code_to_string(code):
   if zeroes != 0: # not a multiple of 8
     code = code + '0'*zeroes # add zeroes, redundancies
   for i in range(0,len(code),8):
-    compressed = encoded + chr(int(code[i:i+8],2))
+    compressed = compressed + chr(int(code[i:i+8],2))
   return compressed
  
 # returns the second smallest element in a numeric list
@@ -81,33 +78,30 @@ def second_smallest(numbers):
 ##	
   
 # main
-if __name__ == "__main__":
   # open file
-  file = 'text_sample.txt'
-  text = readfile(file)
+file = 'text_sample.txt'
+text = readfile(file)
 
-  #print text
-  
 ##  #Constructing the tree
 ##  characterCounter = frequency(text)
 ##  sortedCounter = sorted(characterCounter.items(), key=operator.itemgetter(1))
 ##  tree = constructHuffmanTree(text, sortedCounter)
-  
-  # example cases for encoding
-  tree = {0:'a', 10:'b', 11:'c'}
-  words = 'acbcab' 
-  code = encode(tree,words)
-  #print code
 
-  compressed = code_to_string(code)
+# example cases for encoding
+tree = {0:'a', 10:'b', 11:'c'}
+words = 'acbcab' 
+code = encode(tree,words)
+#print (code)
 
-  write_data(tree)
-  print read_data()
+compressed = code_to_string(code)
 
-  # write in file
-  extension = 'hff'
-  ex_filename = 'result' + '.' + extension
-  ex = open('text_sample.txt','r').read() #example to write
-  writefile(ex_filename, ex)
+write_data(tree)
+print (read_data())
 
-  print zeroes
+# write in file
+extension = 'hff'
+ex_filename = 'result' + '.' + extension
+ex = open('text_sample.txt',encoding='utf-8').read() #example to write
+writefile(ex_filename, ex)
+
+print (zeroes)
