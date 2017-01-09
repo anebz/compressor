@@ -71,7 +71,25 @@ def code_to_string(code):
   for i in range(0,len(code),8):
     compressed = compressed + chr(int(code[i:i+8],2))
   return compressed
- 
+
+#Decoding function
+def decode(tree2, code):
+  tree = {value:key for key,value in tree2.items()}
+  print(tree)
+  text = ''
+  add = ''
+  for i in range(len(code)):    
+    add += code[i]
+    if len(add) == 1:
+      if add[:] in tree.keys():
+        text += tree[add]
+        add = ''
+    else:
+      if add[:] in tree.keys():
+        text += tree[add]
+        add = ''
+  return text
+
 # returns the second smallest element in a numeric list
 def second_smallest(numbers):
   return sorted(numbers,key=float)[1]
@@ -125,6 +143,6 @@ zeros2 = tree2['999']
 text = text[text.find('}'):(len(text)-zeros2+1)] # the encoded text
 code2 = string_to_code(text)
 
-#decoded = decode(tree2, code)
+decoded = decode(tree2, code)
 
-#print(decoded)
+print(decoded)
