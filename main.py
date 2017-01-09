@@ -145,4 +145,5 @@ code2 = string_to_code(text)
 
 decoded = decode(tree2, code)
 
-print(decoded)
+print(len(decoded))
+print(len(words))
