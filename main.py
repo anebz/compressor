@@ -58,34 +58,43 @@ def second_smallest(numbers):
   return sorted(numbers,key=float)[1]
 
 # returns a list with the Huffman-encoded ASCII table
-##def constructHuffmanTree(text, count):
-##  savedCoding = [''] * len(count) # hay que pasarlo a diccionario, mas que a vector
-##  aux = count
-##  for ii in range(len(count)):
-##    dictValues = aux.values()
-##    smallestElementValue = min(dictValues)
-##    secondSmallestElementValue = second_smallest(dictValues)
-##    for key,value in aux:
-##      if value == smallestElementValue or value == secondSmallestElementValue:
-##        a = 1
-##        # Aqui quiero hacer dos cosas. Primero, crear otro dicc llamado aux que tenga los mismos 
-##            # elementos que count menos estos dos elementos, que estaran agrupados en un unico elemento
-##            # que tenga los dos caracteres del nodo (ejemplo: si tiene a y b, seria un key ab) con value
-##            # la suma de los values de cada key, asi hasta solo tener un unico nodo final. 
-##            # Tambien mi idea es guardar en savedCoding dependiendo los keys que formen cada nodo la rama de codificacion
-##            # '0' o '1', como los apuntes de clase
-##
-##	
+def constructHuffmanTree(text, count):
+  savedCoding = dict.fromkeys(count.keys(), '')
+  aux = dict(count)
+  for ii in range(len(count)):
+    flag = 0
+    dictValues = list(aux.values())
+    smallestElementValue = min(dictValues)
+    secondSmallestElementValue = second_smallest(dictValues)
+    for key,value in aux.items():
+      if value == smallestElementValue or value == secondSmallestElementValue:
+        flag += 1
+        # Aqui quiero hacer dos cosas. Primero, crear otro dicc llamado aux que tenga los mismos 
+        # elementos que count menos estos dos elementos, que estaran agrupados en un unico elemento
+        # que tenga los dos caracteres del nodo (ejemplo: si tiene a y b, seria un key ab) con value
+        # la suma de los values de cada key, asi hasta solo tener un unico nodo final. 
+        # Tambien mi idea es guardar en savedCoding dependiendo los keys que formen cada nodo la rama de codificacion
+	# '0' o '1', como los apuntes de clase
+      if flag == 1:
+        node1 = key
+        for jj in key:
+          savedCoding[jj] = savedCoding[jj] + '0'
+      elif flag == 2:
+        node2 = key
+        for jj in key:
+          savedCoding[jj] = savedCoding[jj] + '1'
+        break
+
+	
   
 # main
-  # open file
+# open file
 file = 'text_sample.txt'
 text = readfile(file)
 
-##  #Constructing the tree
-##  characterCounter = frequency(text)
-##  sortedCounter = sorted(characterCounter.items(), key=operator.itemgetter(1))
-##  tree = constructHuffmanTree(text, sortedCounter)
+#Constructing the tree
+characterCounter = frequency(text)
+tree = constructHuffmanTree(text, characterCounter)
 
 # example cases for encoding
 tree = {0:'a', 10:'b', 11:'c'}
