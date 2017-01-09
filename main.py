@@ -81,11 +81,11 @@ def decode(tree2, code):
   for i in range(len(code)):    
     add += code[i]
     if len(add) == 1:
-      if add[:] in tree.keys():
+      if add in tree.keys():
         text += tree[add]
         add = ''
     else:
-      if add[:] in tree.keys():
+      if add in tree.keys():
         text += tree[add]
         add = ''
   return text
