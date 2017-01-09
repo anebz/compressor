@@ -36,11 +36,11 @@ def frequency(string):
 # given a tree in this format: {0:'a', 10:'b', 11:'c'}
 # and words being the string read from the file
 def encode(tree,words):
-  inv_tree = {value:key for key,value in tree.items()}
+  #inv_tree = {value:key for key,value in tree.items()}
   code = ''
   for let in words:
-    if let in inv_tree:
-      code = code + str(inv_tree[let])
+    if let in tree:
+      code = code + str(tree[let])
   return code
 
 def code_to_string(code):
@@ -98,15 +98,21 @@ tree = constructHuffmanTree(text, characterCounter)
 print(tree)
 
 # example cases for encoding
-tree = {0:'a', 10:'b', 11:'c'}
-words = 'acbcab' 
+#tree = {0:'a', 10:'b', 11:'c'}
+words = text
+#words = 'acbcab' 
 code = encode(tree,words)
 #print (code)
 
 compressed = code_to_string(code)
+print(compressed)
 
-write_data(tree)
-print (read_data())
+print(len(text),len(compressed))
+
+print("Compresion rate:", len(compressed)/len(text))
+
+#write_data(tree)
+#print (read_data())
 
 # write in file
 extension = 'hff'
@@ -114,4 +120,4 @@ ex_filename = 'result' + '.' + extension
 ex = open('text_sample.txt',encoding='utf-8').read() #example to write
 writefile(ex_filename, ex)
 
-print (zeroes)
+#print (zeroes)
