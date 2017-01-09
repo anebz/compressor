@@ -61,7 +61,7 @@ def second_smallest(numbers):
 def constructHuffmanTree(text, count):
   savedCoding = dict.fromkeys(count.keys(), '')
   aux = dict(count)
-  for ii in range(len(count)):
+  for ii in range(len(count) - 1):
     flag = 0
     dictValues = list(aux.values())
     smallestElementValue = min(dictValues)
@@ -84,6 +84,12 @@ def constructHuffmanTree(text, count):
         for jj in key:
           savedCoding[jj] = savedCoding[jj] + '1'
         break
+    aux[node1] = aux[node1] + aux[node2]
+    newLetter = node1 + node2
+    aux[newLetter] = aux[node1]
+    del aux[node1]
+    del aux[node2]
+  return savedCoding
 
 	
   
@@ -95,6 +101,7 @@ text = readfile(file)
 #Constructing the tree
 characterCounter = frequency(text)
 tree = constructHuffmanTree(text, characterCounter)
+print(tree)
 
 # example cases for encoding
 tree = {0:'a', 10:'b', 11:'c'}
