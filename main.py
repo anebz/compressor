@@ -83,6 +83,9 @@ def constructHuffmanTree(text, count):
     aux[newLetter] = aux[node1]
     del aux[node1]
     del aux[node2]
+  for key in savedCoding.keys():
+    a = list(reversed(savedCoding[key]))
+    savedCoding[key] = ''.join(a)
   return savedCoding
 
 	
