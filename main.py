@@ -19,7 +19,7 @@ def writefile(filename, tree, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
-  for i in range(127):
+  for i in range(10000):
     if string.count(chr(i)):
       freq[chr(i)] = string.count(chr(i))*1.0/leng
   if string.count('’'):
@@ -54,13 +54,12 @@ def constructHuffmanTree(text, count):
     del aux[node2]
   return savedCoding
 
-# given a tree in this format: {0:'a', 10:'b', 11:'c'}
+# given a tree in this format: {'a':0, 'b':10, 'c':11}
 # and words being the string read from the file
 def encode(tree,words):
-  #inv_tree = {value:key for key,value in tree.items()}
   code = ''
   for let in words:
-    if let in tree:
+    if let in tree.keys():
       code = code + str(tree[let])
   return code
 
@@ -70,7 +69,10 @@ def code_to_string(code):
   compressed = ''
   if zeros != 0: # not a multiple of 8
     code = code + '0'*zeros # add zeroes, redundancies
+  #print(code.find(tree['-'],0))
   for i in range(0,len(code),8):
+##    if code[i:i+8] == tree['-']:
+##      print('found it')
     compressed = compressed + chr(int(code[i:i+8],2))
   return compressed
 
@@ -106,20 +108,11 @@ original_text = readfile(file)
 #Constructing the tree
 characterCounter = frequency(original_text)
 tree = constructHuffmanTree(original_text, characterCounter)
-print(tree)
 
-# example cases for encoding
-#tree = {0:'a', 10:'b', 11:'c'}
 words = original_text
-#words = 'acbcab' 
 code = encode(tree,words)
-#print (code)
 
 compressed = code_to_string(code)
-#print(compressed)
-
-print(len(original_text),len(compressed))
-
 print("Compresion rate:", len(compressed)/len(original_text))
 
 # write in file
@@ -132,7 +125,6 @@ writefile(ex_filename, tree, compressed)
 file = 'result.hff'
 text2 = readfile(file)
 tree2 = ast.literal_eval(text2[:text2.find('}')+1])
-#print(tree2)
 zeros2 = tree2['999']
 
 text2 = text2[text2.find('}'):(len(text2)-zeros2+1)] # the encoded text
@@ -140,15 +132,14 @@ code2 = string_to_code(text2)
 
 decoded = decode(tree2, code)
 
-print(len(decoded),len(original_text))
-
-f = open('decoded.txt', 'w', encoding='utf-8')
+f = open('decompressed.txt', 'w', encoding='utf-8')
 f.write(decoded)
 f.close()
 
-for i in range(len(original_text)):
-  if decoded[i] != original_text[i]:
-    print(i,decoded[i],original_text[i])
-    break
+##for i in range(len(original_text)):
+##  if decoded[i] != original_text[i]:
+##    print(i,decoded[i],original_text[i])
+##    break
 
+print ("Compression was good?",original_text == decoded)
 
