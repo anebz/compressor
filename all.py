@@ -2,6 +2,7 @@
 
 import os
 from tkinter import *
+from tkinter import filedialog
 import operator
 import json
 import ast
@@ -21,7 +22,8 @@ def readfile(filename):
 
 def writefile(filename, tree, string):
   f = open(filename, 'w', encoding='utf-8')
-  json.dump(tree, f) # dump tree
+  if tree != {}:
+    json.dump(tree, f) # dump tree
   f.write(string)
   f.close()
 
@@ -107,6 +109,49 @@ def string_to_code(text):
   return code
 
 
+def compression():
+
+  global origin_data #original text
+  global destination_path
+  
+  #Constructing the tree
+  characterCounter = frequency(origin_data)
+  tree = constructHuffmanTree(origin_data, characterCounter)
+
+  code = encode(tree,origin_data)
+
+  compressed = code_to_string(code)
+  print("Compresion rate:", len(compressed)/len(origin_data))
+
+  # write in file
+  tree['999'] = zeros
+  writefile(destination_path, tree, compressed)
+  
+
+def decompression():
+    
+  global origin_data #original text
+  global destination_path
+
+
+  text2 = origin_data
+  tree2 = ast.literal_eval(text2[:text2.find('}')+1])
+  zeros2 = tree2['999']
+
+  text2 = text2[text2.find('}'):(len(text2)-zeros2+1)] # the encoded text
+  code2 = string_to_code(text2)
+
+  decoded = decode(tree2, code2)
+
+
+  writefile(destination_path, {}, decoded)
+
+  ##for i in range(len(original_text)):
+  ##  if decoded[i] != original_text[i]:
+  ##    print(i,decoded[i],original_text[i])
+  ##    break
+
+  print ("Compression was good?",origin_data == decoded)
 
 
 # ~~~~ GUI FUNCTIONS ~~~~
@@ -117,7 +162,7 @@ def open_origin_file(path, entry):
 
   options = {}
   options['defaultextension'] = '.txt'
-  options['filetypes'] = [('text files', '.txt')]
+  options['filetypes'] = [('text files', '.txt'),('Huffman-compressed files', '.hff')]
   options['initialdir'] = 'C:\\' + origin_path
   options['title'] = 'Choose file'
   
@@ -137,7 +182,7 @@ def open_destination_file(path, entry):
 
   options = {}
   options['defaultextension'] = '.hff'
-  options['filetypes'] = [('Huffman-compressed file', '.hff')]
+  options['filetypes'] = [('text files', '.txt'),('Huffman-compressed files', '.hff')]
   options['initialdir'] = 'C:\\' + origin_path
   options['title'] = 'Choose file'
   
@@ -148,26 +193,8 @@ def open_destination_file(path, entry):
     destination_path = filename
     entry.insert(0, destination_path)
 
-def compression():
-  global origin_data #original text
-  global destination_path
-  
-  #Constructing the tree
-  characterCounter = frequency(origin_data)
-  tree = constructHuffmanTree(origin_data, characterCounter)
 
-  code = encode(tree,origin_data)
-
-  compressed = code_to_string(code)
-  print("Compresion rate:", len(compressed)/len(origin_data))
-
-  # write in file
-  tree['999'] = zeros
-  writefile(destination_path, tree, compressed)
-  
-
-
-# ~~~~~~ GUI ~~~~~~~~
+  # ~~~~~~ GUI ~~~~~~~~
 root = Tk()
 root.title('Huffman Compressor')
 # geometry of the window
@@ -198,7 +225,7 @@ Button(f1, text="...", command=lambda: open_origin_file(origin_path, entry1)).gr
 Button(f1, text="...", command=lambda: open_destination_file(destination_path, entry2)).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
 
 Button(f2, text="Compress", width=25, command=lambda: compression()).grid(row=2, column=2,sticky='ew', padx=5)
-Button(f2, text="Decompress", width=25, state=DISABLED, command=lambda: process_file()).grid(row=2, column=3, sticky='ew', padx=5)
-
+Button(f2, text="Decompress", width=25, command=lambda: decompression()).grid(row=2, column=3, sticky='ew', padx=5)
+# state=DISABLED, 
 # main
 root.mainloop()

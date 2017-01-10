@@ -121,25 +121,39 @@ ex_filename = 'result' + '.' + extension
 tree['999'] = zeros
 writefile(ex_filename, tree, compressed)
 
+
+
 ## DECODING
 file = 'result.hff'
 text2 = readfile(file)
 tree2 = ast.literal_eval(text2[:text2.find('}')+1])
 zeros2 = tree2['999']
 
-text2 = text2[text2.find('}'):(len(text2)-zeros2+1)] # the encoded text
-code2 = string_to_code(text2)
+text2 = text2[text2.find('}')+1:] # the encoded text
 
-decoded = decode(tree2, code)
+# ver en que punto son diferentes el text2 leido de result.hff
+# y el compresed string que supusetamente se ha escrito en result.hff
+for i in range(len(compressed)):
+  if text2[i] != compressed[i]:
+    print(i,text2[i],compressed[i])
+    break
+
+
+code2 = string_to_code(text2)
+code2 = code2[:(len(text2)-zeros2+1)] # deleting the redundancies
+
+decoded = decode(tree2, code2)
 
 f = open('decompressed.txt', 'w', encoding='utf-8')
 f.write(decoded)
 f.close()
 
-##for i in range(len(original_text)):
-##  if decoded[i] != original_text[i]:
-##    print(i,decoded[i],original_text[i])
-##    break
+# ver en que punto difieren (? diferir?)el texto original
+# y el texto decomprimido que deberian ser iguales
+for i in range(len(original_text)):
+  if decoded[i] != original_text[i]:
+    print(i,decoded[i],original_text[i])
+    break
 
 print ("Compression was good?",original_text == decoded)
 
