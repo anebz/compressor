@@ -26,6 +26,10 @@ def frequency(string):
     freq['’'] = string.count('’')*1.0/leng
   return freq
 
+# returns the second smallest element in a numeric list
+def second_smallest(numbers):
+  return sorted(numbers,key=float)[1]
+
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, count):
   savedCoding = dict.fromkeys(count.keys(), '')
@@ -71,8 +75,6 @@ def code_to_string(code):
     code = code + '0'*zeros # add zeroes, redundancies
   #print(code.find(tree['-'],0))
   for i in range(0,len(code),8):
-##    if code[i:i+8] == tree['-']:
-##      print('found it')
     compressed = compressed + chr(int(code[i:i+8],2))
   return compressed
 
@@ -87,22 +89,20 @@ def decode(tree2, code):
       add = ''
   return text
 
-# returns the second smallest element in a numeric list
-def second_smallest(numbers):
-  return sorted(numbers,key=float)[1]
-
 def string_to_code(text):
   code = ''
   for e in text:
-    code += "{0:b}".format(ord(e))
-  return code
-   
+    code0 = bin(ord(e))[2:]
+    if len(code0) != 8 and e != text[len(text)-1]:
+      code0 = '0'*(8-len(code0)) + code0
+    code += code0
+  return code   
   
   
 ##ENCODING
 
 # open file
-file = 'text_sample.txt'
+file = 'a1.txt'
 original_text = readfile(file)
 
 #Constructing the tree
@@ -115,32 +115,43 @@ code = encode(tree,words)
 compressed = code_to_string(code)
 print("Compresion rate:", len(compressed)/len(original_text))
 
+print(compressed[:55])
+
 # write in file
 extension = 'hff'
 ex_filename = 'result' + '.' + extension
 tree['999'] = zeros
 writefile(ex_filename, tree, compressed)
 
-
-
 ## DECODING
 file = 'result.hff'
 text2 = readfile(file)
-tree2 = ast.literal_eval(text2[:text2.find('}')+1])
+limit = text2.find('}')
+tree2 = ast.literal_eval(text2[:limit+1])
 zeros2 = tree2['999']
 
-text2 = text2[text2.find('}')+1:] # the encoded text
+text2 = text2[limit+1:] # the encoded text
 
-# ver en que punto son diferentes el text2 leido de result.hff
-# y el compresed string que supusetamente se ha escrito en result.hff
-for i in range(len(compressed)):
-  if text2[i] != compressed[i]:
-    print(i,text2[i],compressed[i])
-    break
-
+#problem with end of lines
 
 code2 = string_to_code(text2)
-code2 = code2[:(len(text2)-zeros2+1)] # deleting the redundancies
+code2 = code2[:(len(code2)-zeros2+1)] # deleting the redundancies
+
+print(tree)
+print(tree2)
+
+print("comparing texts")
+print(text2[:55])
+cont = 0
+for i in range(len(text2)):
+  if compressed[i] != text2[i]:
+    print(i,compressed[i],text2[i])
+    cont += 1
+    if cont == 10:
+      break
+
+print(compressed[i-1:i+50])
+print(text2[i-1:i+50])
 
 decoded = decode(tree2, code2)
 
@@ -148,12 +159,12 @@ f = open('decompressed.txt', 'w', encoding='utf-8')
 f.write(decoded)
 f.close()
 
-# ver en que punto difieren (? diferir?)el texto original
-# y el texto decomprimido que deberian ser iguales
-for i in range(len(original_text)):
-  if decoded[i] != original_text[i]:
-    print(i,decoded[i],original_text[i])
-    break
+g = open('a1.txt', encoding='utf-8').read()
 
-print ("Compression was good?",original_text == decoded)
+#print(len(decoded),len(g))
 
+##for i in range(len(g)):
+##  if decoded[i] != g[i]:
+##    print(i,decoded[i],g[i])
+##    break
+##
