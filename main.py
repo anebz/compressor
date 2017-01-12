@@ -5,13 +5,14 @@ import ast
 
 # Global Variables
 zeros = 0
+encod = 'latin-1'
 
 # should be a .txt
 def readfile(filename):
-  return open(filename, encoding='utf-8').read()
+  return open(filename, encoding=encod, errors='ignore').read()
 
 def writefile(filename, tree, string):
-  f = open(filename, 'w', encoding='utf-8')
+  f = open(filename, 'w', encoding=encod, errors='ignore')
   json.dump(tree, f) # dump tree
   f.write(string)
   f.close()
@@ -69,11 +70,9 @@ def encode(tree,words):
 
 def code_to_string(code):
   global zeros 
-  zeros = len(code)%8
+  zeros = 8 - len(code)%8
   compressed = ''
-  if zeros != 0: # not a multiple of 8
-    code = code + '0'*zeros # add zeroes, redundancies
-  #print(code.find(tree['-'],0))
+  code = code + '0'*zeros # add zeroes, redundancies
   for i in range(0,len(code),8):
     compressed = compressed + chr(int(code[i:i+8],2))
   return compressed
@@ -97,12 +96,13 @@ def string_to_code(text):
       code0 = '0'*(8-len(code0)) + code0
     code += code0
   return code   
-  
-  
+
+
+
 ##ENCODING
 
 # open file
-file = 'a1.txt'
+file = 'text_sample.txt'
 original_text = readfile(file)
 
 #Constructing the tree
@@ -111,11 +111,9 @@ tree = constructHuffmanTree(original_text, characterCounter)
 
 words = original_text
 code = encode(tree,words)
-
 compressed = code_to_string(code)
-print("Compresion rate:", len(compressed)/len(original_text))
 
-print(compressed[:55])
+print("Compresion rate:", len(compressed)/len(original_text))
 
 # write in file
 extension = 'hff'
@@ -126,45 +124,25 @@ writefile(ex_filename, tree, compressed)
 ## DECODING
 file = 'result.hff'
 text2 = readfile(file)
+
 limit = text2.find('}')
 tree2 = ast.literal_eval(text2[:limit+1])
-zeros2 = tree2['999']
-
+zeros2 = tree['999']
 text2 = text2[limit+1:] # the encoded text
 
-#problem with end of lines
-
-code2 = string_to_code(text2)
-code2 = code2[:(len(code2)-zeros2+1)] # deleting the redundancies
-
-print(tree)
-print(tree2)
-
-print("comparing texts")
-print(text2[:55])
-cont = 0
-for i in range(len(text2)):
-  if compressed[i] != text2[i]:
-    print(i,compressed[i],text2[i])
-    cont += 1
-    if cont == 10:
-      break
-
-print(compressed[i-1:i+50])
-print(text2[i-1:i+50])
-
+code2 = string_to_code(compressed)
+code2 = code2[:(len(code2)-zeros2)] # deleting the redundancies
 decoded = decode(tree2, code2)
 
-f = open('decompressed.txt', 'w', encoding='utf-8')
+f = open('decompressed.txt', 'w', encoding=encod)
 f.write(decoded)
 f.close()
+# if it has gone well or not
+print(decoded == original_text)
 
-g = open('a1.txt', encoding='utf-8').read()
+# find the error (if it exists) and print the position, what there is, and what should have been
+for i in range(len(original_text)):
+  if decoded[i] != original_text[i]:
+    print(i,decoded[i],original_text[i])
+    break
 
-#print(len(decoded),len(g))
-
-##for i in range(len(g)):
-##  if decoded[i] != g[i]:
-##    print(i,decoded[i],g[i])
-##    break
-##

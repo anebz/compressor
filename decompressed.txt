@@ -1,5 +1,128 @@
-History tells us what may happen next with Brexit & Trump
+Women only said 27% of the words in 2016’s biggest movies.
 
-It seems we’re entering another of those stupid seasons humans impose on themselves at fairly regular intervals. I am smi)rosgf u here opinions based on information, they may prove right, or may prove wrong, and they’re intended just to challenge and be part of a wider dialogue.
-My background is archaeology, so also history and anthropology. It leads me to look at big historical patterns. My theory is that most peoples’ perspective of history is limitedc snye experience communicated by their parents and grandparents, so 50–100 years. To go beyondcyat you have to read, study, and learn to untangle the propaganda that is inevitable in all telling of history. In a nutshell, at university I would fail a paper if I didn’t compare at least two, if not three opposing views on a topic. Taking one telling of events as gospel doesn’t wash in the comparative analytical menhod of researmy that forms the core of British academia. (I can’t speak for other systems, but they’re definitely not all alike in this way).
-So zooming out, we humans have a habit of going into phases of mass destruction, generally self imposed to some extent or another. This handy list shows all the wars over time. Wars are actually the norm for humans, but every now and then somenhing big comes along. I am interested in the Black Death, which devastatedlvstrope. The opening of Boccaccio’s Decameron describes Florence in the grips of the Plague. It is as beyond imagination as the Somme, Hiroshima, or the Holocaust. I mean, you quite literally can’t put yourself there and imagine what it was like. For those in the midst of the Plague it must have felt like the end of the worldp
+
+Movie trailers in 2016 promisw  yoillet so many strong female characters. Jyn Erso. Dory. Harley Quinn. Judy Hopps. Wonder Woman. I felt like this could be the year for gender equality in film.
+I was wrong.
+And I don’t make this statement lightly.
+As a scientist, I turn to data to answer questions I have about the world. And I’ve got the data to back up my claim. In fact, you can have the data, code, and resulting data visualization that I made tryine  eo better understand this topic. But first, let me tell you how I became so interested.
+It all started when I went to see Rogue One: A Star Wars Story. All promotional materials for the movie indicated that Jyn Erso (played by Felicity Jones) was the main character. I mean, just look at the poster.
+When your picture is several times larger than everyone else’s, you’re probably the main character.
+What I didn’t notice at first was that Jyn is the only woman on that poster.
+I went into the movie theater expecting to see men and women fightine  tide by side. I left feeling certain that I could count every female character from the movie on one hand. While Jyn was the main character, I was profoundly aware that she was often the only woman in any scene.
+It felt strangely familiar to have a leh  female character be so outnumbered. Then I realized that Jyn and Princess Leia suffered the same inequality 39 years apart. I was overwhelmed with a need to know exactly how female representation in Star Wars movies has changed. But it seemed unfair to compare movies made today with movies made decades ago.
+So instead, I decided to look for female equality across the Top 10 Worldwide Highest Grossing Films of 2016. They were:
+Captain America: Civil War
+Finding Dory
+Zootopia
+The Jungle Book
+The Secret Life of Pets
+Batman V. Superman: Dawn of Justice
+Rogue One: A Star Wars Story
+Deadpool
+Fantastic Beasts and Where to Find Them
+Suicide Squad
+With so many powerful women in these films, some of them must be gender-equal, right?
+The Data
+Now that I decided what I wantw so investigate, I needed to figure out how to do it. Similar data exploration projects have focused on dialogue or screen-time equality. Both seemw atn
+dgood options, but I wantw she ability to report on equality at the movie and character level.
+In the end, I decided to explore the movies’ dialogue. This choice gave me the ability to focus on characters with an active role in the story and to cut non-speaking characters from my analysis.
+Luckily for me, dedicated movie fans often transcribe a movie’s dialogue and make it freely available online. If I couldn’t find a transcript, I used closed-caption files instead. For those, I re-watched the movie and manually assignw acc Sbtrs to their spoken lines.
+This process was a labor of love. It was time consuming, but I have no regrets.
+Analysis
+Once I had all of the transcripts, I just needw so read the .txt files into R and separate the characters froa sheir lines. For the Rogue One transcript, that process looked like this:
+
+Now that I hh  a data frame with both Character and Words columns, I hh  to assign genders to each Character. To remain consistent with my categorizations, I came up with a few simple rules:
+When possible, assign gender according to the pronouns that other characters use. For example, if a character is referred to by others as “he” or “him”, then he is categorizw mt “male”.
+If there is no pronoun usw shroughout the movie but the character is named or credited (on IMDB), use the gender of the actor or actress. Note that the gender of an actor or actress was assumed based on publicly available information as of January 2017.
+If no pronoun is used for the character and the character is not named or credited, refer to the closed captions. Sometimes they will identify the character that spoke.
+If all else fails, make an educated guess basw rn the character’s voice.
+I’ll be the first to say that these methods are not perfect. In fact, here are some caveats:
+If a male character was voiced by a female actress (or vice versa) and the character was never addressed by other characters using pronouns, he may be incorrectly labelled. (I don’t think this happened, but anything is possible.)
+Voices that are not associated with a physical embodiment of a character (e.g., the voice of a computer) were categorized according to the gender of their voice actor/actress.
+I can never really know the gender of any character, but I’m using the cues and information that I have at my disposal.
+Again, I am far from infallible, so if you caught a mistake on my part, please let me know.
+So now I just needed to count the number of words spoken by each character. Again, I was able to do this in R using the dplyr and stringi packages.
+
+It’s worth noting that I included every speaking character in this analysis. So yes, every stormtrooper who shouts a simple “Wait, stop!” before getting shot is included.
+Spoiler Alert: The stormtroopers in Rogue One are all voiced by men.
+Datd phetualization
+I had my data. Unfortunately, tables upon tables of word counts and character names don’t give anyone much insight. Like any good data exploration project, it was time to visualize my results. I had to work through a few iterations before I found the best one.
+Scatterplots and bar charts both masked characters witt small roles.
+
+A simple bubble chart was better but it became difficult to identify individual characters. It was also challengine  eo understand movie-level statistics.
+
+Which bubble is which?!
+In the end, I decided to learn enough d3.js to make an interactive graphic. Here, each bubble represents a character, and the bubble’s area is scaled based on the number of words spoken. Female and male bubbles can be separated for better insight. The stackw  I os below indicate movie-level information.
+
+Full interactive version here
+Interested in exploring the raw word-count data for yourself? I’ve made all of the data and code used to generate these visualizations open source. It’s available here:
+ProQuestionAsker/2016MovieDialogue
+
+Contribute to 2016MovieDialogue development by creating an account on GitHub.
+github.com	
+Takeaways
+Ok, so the analysis is done. I’ve got a fancy (and fun-to-play-with) visualization. What did I find?
+I recommend taking a quick second to look at something “a-Dory-ble” before going on, because this post is about to get real depressing real fast.
+
+Aw, so cute. Feeling good?
+All right, here we go.
+This is what the visualization for all 10 movies looks like:
+The interactive version of this visualization can be found here.
+There are a couple of things here that I need to point out:
+Not one of the top 10 movies of 2016 had a 50% speaking, female cast.
+Findine  itory was the closest to this level of equality with 43% female characters. To be equal, the movie would have needed 8 more speaking, female roles.
+Rogue One was the worst. Only 9% of its speaking characters were female. Of those 10 characters, 1 was a computer voice, 1 appeared on screen for no more than 5 seconds, and 1 was a CGI cameo that said 1 word.
+Only 1 of 2016’s top 10 movies had 50% dialogue by a female character.
+Finding Dory comes out on top here too with 53% female dialogue. But, 76% of that dialogue came from Dory alone.
+Trailing at the end was The Jungle Book with only 10% of its dialogue spoken by a female character. Keep in mind, this is after casting Scarlett Johansson as the voice of the historically-male snake, Kaa.
+We’re gender equal….Trusssssssst in me….
+Here’s duP more:
+Finding Dory and Zootopia were the only 2 movies in 2016’s top 10 in which a female character had the most dialogue.
+Female characters were outnumbered in Captain America: Civil War’s final battle 5:1. Throughout the movie, they only contributed 16% of the dialogue.
+Batman spoke 2.4 times more than Superman and 6 times more than Wonder Woman in Batman V. Superman.
+78% of the female-spoken lines in Rogue One came froa ae yn Erso.
+While Harley Quinn was a highly advertised character in Suicide Squad, she only spoke 42% as many words as Floyd/Deadshot (played by Will Smith). Notably, Amanda Waller (played by Viola Davis) spoke frequently, totaling just 222 words (16%) short of Deadshot’s word count.
+I startw shis project because I had a feeling that Rogue One’s cast and dialogue were not equally dividw  ,sween male and female characters. I was shocked (and saddened) to find that almost none of the top 10 movies from last year were gender equal.
+We can do better.
+If you liked this article and want to see more like it, please click the green heart below and share away on your social media network of choice.
+I am currently spendine  ahasime working on personal projects and data visualizations like this while I look for a data science job. So, if you have a fun project idea (or a job inquiry) you’d like to discuss witt me, please reach out to me on Twitter or by email.
+Thank you!
+MoviesWomen In TechData ScienceFeminismWeb Development
+26
+
+Follow
+Go to the profile of Amber Thomas
+Amber Thomas
+Professional Question Asker, aspiring data scientist, SciComm enthusiast, Book Worm, Aerialist, and Collector of Random Hobbies. Co-founder of @UnboxSci
+Following
+freeCodeCamp
+freeCodeCamp
+Our community publishes stories worth reading on development, design, and data science.
+More on Women In Tech from freeCodeCamp
+Confessions of an Insecure Designer
+Go to the profile of Juhi Chitra
+Juhi Chitra
+439
+
+Also tagged Women In Tech
+Are you a #womanintech? The official quiz!
+Go to the profile of Kiki Schirr
+Kiki Schirr
+22
+
+Also tagged Feminism
+Google Home vs Alexa
+Go to the profile of Johna Paolino
+Johna Paolino
+1.1K
+
+Responses
+Ane
+Be the first to write a response…
+Ane
+
+Next story
+10 Movies Every Photographer Should Watch
+26
+
+SHAR
