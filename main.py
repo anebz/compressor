@@ -5,14 +5,14 @@ import ast
 
 # Global Variables
 zeros = 0
-encod = 'latin-1'
+encod = 'utf-8'
 
 # should be a .txt
 def readfile(filename):
-  return open(filename, encoding=encod, errors='ignore').read()
+  return open(filename, encoding=encod).read()
 
 def writefile(filename, tree, string):
-  f = open(filename, 'w', encoding=encod, errors='ignore')
+  f = open(filename, 'w', encoding=encod)
   json.dump(tree, f) # dump tree
   f.write(string)
   f.close()
@@ -97,7 +97,20 @@ def string_to_code(text):
     code += code0
   return code   
 
+def s_to_bitlist(s):
+  ords = (ord(c) for c in s)
+  shifts = (7, 6, 5, 4, 3, 2, 1, 0)
+  return [(o >> shift) & 1 for o in ords for shift in shifts]
 
+def bitlist_to_chars(bl):
+  bi = iter(bl)
+  bytes = zip(*(bi,) * 8)
+  shifts = (7, 6, 5, 4, 3, 2, 1, 0)
+  for byte in bytes:
+    yield chr(sum(bit << s for bit, s in zip(byte, shifts)))
+
+def bitlist_to_s(bl):
+  return ''.join(bitlist_to_chars(bl))
 
 ##ENCODING
 
@@ -111,15 +124,23 @@ tree = constructHuffmanTree(original_text, characterCounter)
 
 words = original_text
 code = encode(tree,words)
-compressed = code_to_string(code)
 
-print("Compresion rate:", len(compressed)/len(original_text))
+if zeros != 0:
+  code = code + '0'*(8-(zeros))
+
+tocode = []
+for e in code:
+  tocode.append(int(e))
+
+comp = bitlist_to_s(tocode)
+
+print("Compresion rate:", len(comp)/len(original_text))
 
 # write in file
 extension = 'hff'
 ex_filename = 'result' + '.' + extension
 tree['999'] = zeros
-writefile(ex_filename, tree, compressed)
+writefile(ex_filename, tree, comp)
 
 ## DECODING
 file = 'result.hff'
@@ -130,7 +151,9 @@ tree2 = ast.literal_eval(text2[:limit+1])
 zeros2 = tree['999']
 text2 = text2[limit+1:] # the encoded text
 
-code2 = string_to_code(compressed)
+back = s_to_bitlist(text2)
+code2 = ''.join(str(e) for e in back)
+
 code2 = code2[:(len(code2)-zeros2)] # deleting the redundancies
 decoded = decode(tree2, code2)
 
@@ -140,9 +163,9 @@ f.close()
 # if it has gone well or not
 print(decoded == original_text)
 
-# find the error (if it exists) and print the position, what there is, and what should have been
-for i in range(len(original_text)):
-  if decoded[i] != original_text[i]:
-    print(i,decoded[i],original_text[i])
-    break
+### find the error (if it exists) and print the position, what there is, and what should have been
+##for i in range(len(original_text)):
+##  if decoded[i] != original_text[i]:
+##    print(i,decoded[i],original_text[i])
+##    break
 
