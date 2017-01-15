@@ -132,7 +132,7 @@ tocode = []
 for e in code:
   tocode.append(int(e))
 
-comp = bitlist_to_s(tocode)
+comp = code_to_string(code)
 
 print("Compresion rate:", len(comp)/len(original_text))
 
@@ -151,11 +151,13 @@ tree2 = ast.literal_eval(text2[:limit+1])
 zeros2 = tree['999']
 text2 = text2[limit+1:] # the encoded text
 
-back = s_to_bitlist(text2)
+print(len(text2),len(comp))
+
+back = string_to_code(text2)
 code2 = ''.join(str(e) for e in back)
 
 code2 = code2[:(len(code2)-zeros2)] # deleting the redundancies
-decoded = decode(tree2, code2)
+decoded = decode(tree2, text2)
 
 f = open('decompressed.txt', 'w', encoding=encod)
 f.write(decoded)
