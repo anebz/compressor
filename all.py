@@ -13,6 +13,7 @@ origin_data = ''
 destination_path = ''
 destination_data = ''
 zeros = 0
+num = 7
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 
@@ -22,8 +23,7 @@ def readfile(filename):
 
 def writefile(filename, tree, string):
   f = open(filename, 'w', encoding='utf-8')
-  if tree != {}:
-    json.dump(tree, f) # dump tree
+  json.dump(tree, f) # dump tree
   f.write(string)
   f.close()
 
@@ -36,6 +36,10 @@ def frequency(string):
   if string.count('’'):
     freq['’'] = string.count('’')*1.0/leng
   return freq
+
+# returns the second smallest element in a numeric list
+def second_smallest(numbers):
+  return sorted(numbers,key=float)[1]
 
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, count):
@@ -74,17 +78,10 @@ def encode(tree,words):
       code = code + str(tree[let])
   return code
 
-def code_to_string(code):
-  global zeros 
-  zeros = len(code)%8
+def code_to_string(code): 
   compressed = ''
-  if zeros != 0: # not a multiple of 8
-    code = code + '0'*zeros # add zeroes, redundancies
-  #print(code.find(tree['-'],0))
-  for i in range(0,len(code),8):
-##    if code[i:i+8] == tree['-']:
-##      print('found it')
-    compressed = compressed + chr(int(code[i:i+8],2))
+  for i in range(0,len(code),num):
+    compressed = compressed + chr(int(code[i:i+num],2) + 40)
   return compressed
 
 #Decoding function
@@ -98,27 +95,31 @@ def decode(tree2, code):
       add = ''
   return text
 
-# returns the second smallest element in a numeric list
-def second_smallest(numbers):
-  return sorted(numbers,key=float)[1]
-
 def string_to_code(text):
-  code = ''
+  code1 = ''
   for e in text:
-    code += "{0:b}".format(ord(e))
-  return code
+    code0 = bin(ord(e)-40)[2:]
+    if len(code0) != num:
+      code0 = '0'*(num-len(code0)) + code0
+    code1 += code0
+  return code1 
 
 
 def compression():
 
   global origin_data #original text
   global destination_path
+
+  origin_data += ' '
   
   #Constructing the tree
   characterCounter = frequency(origin_data)
   tree = constructHuffmanTree(origin_data, characterCounter)
 
   code = encode(tree,origin_data)
+  zeros = num - len(code)%num
+  if len(code)%num != 0:
+    code = code + '0000000'[len(code)%num:num]
 
   compressed = code_to_string(code)
   print("Compresion rate:", len(compressed)/len(origin_data))
@@ -133,26 +134,25 @@ def decompression():
   global origin_data #original text
   global destination_path
 
-
   text2 = origin_data
-  tree2 = ast.literal_eval(text2[:text2.find('}')+1])
+  pos = 0
+  while(1):
+    limit = text2.find('}', pos)
+    if text2[limit+1] != '"':
+      break
+    else:
+      pos = limit + 1
+  tree2 = ast.literal_eval(text2[:limit+1])
   zeros2 = tree2['999']
+  text2 = text2[limit+1:] # the encoded text
 
-  text2 = text2[text2.find('}'):(len(text2)-zeros2+1)] # the encoded text
-  code2 = string_to_code(text2)
-
-  decoded = decode(tree2, code2)
-
+  back = string_to_code(text2)
+  back = back[:(len(back)-zeros2)] # deleting the redundancies
+  decoded = decode(tree2, back)[:-1]
 
   writefile(destination_path, {}, decoded)
 
-  ##for i in range(len(original_text)):
-  ##  if decoded[i] != original_text[i]:
-  ##    print(i,decoded[i],original_text[i])
-  ##    break
-
-  print ("Compression was good?",origin_data == decoded)
-
+  print(open('text_sample.txt', encoding='utf-8').read() == decoded)
 
 # ~~~~ GUI FUNCTIONS ~~~~
 def open_origin_file(path, entry):

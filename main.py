@@ -68,13 +68,10 @@ def encode(tree,words):
       code = code + str(tree[let])
   return code
 
-def code_to_string(code):
-  global zeros 
-  zeros = 8 - len(code)%8
+def code_to_string(code): 
   compressed = ''
-  code = code + '0'*zeros # add zeroes, redundancies
-  for i in range(0,len(code),8):
-    compressed = compressed + chr(int(code[i:i+8],2))
+  for i in range(0,len(code),6):
+    compressed = compressed + chr(int(code[i:i+6],2) + 40)
   return compressed
 
 #Decoding function
@@ -89,28 +86,14 @@ def decode(tree2, code):
   return text
 
 def string_to_code(text):
-  code = ''
+  code1 = ''
   for e in text:
-    code0 = bin(ord(e))[2:]
-    if len(code0) != 8 and e != text[len(text)-1]:
-      code0 = '0'*(8-len(code0)) + code0
-    code += code0
-  return code   
+    code0 = bin(ord(e)-40)[2:]
+    if len(code0) != 6:
+      code0 = '0'*(6-len(code0)) + code0
+    code1 += code0
+  return code1 
 
-def s_to_bitlist(s):
-  ords = (ord(c) for c in s)
-  shifts = (7, 6, 5, 4, 3, 2, 1, 0)
-  return [(o >> shift) & 1 for o in ords for shift in shifts]
-
-def bitlist_to_chars(bl):
-  bi = iter(bl)
-  bytes = zip(*(bi,) * 8)
-  shifts = (7, 6, 5, 4, 3, 2, 1, 0)
-  for byte in bytes:
-    yield chr(sum(bit << s for bit, s in zip(byte, shifts)))
-
-def bitlist_to_s(bl):
-  return ''.join(bitlist_to_chars(bl))
 
 ##ENCODING
 
@@ -125,12 +108,9 @@ tree = constructHuffmanTree(original_text, characterCounter)
 words = original_text
 code = encode(tree,words)
 
-if zeros != 0:
-  code = code + '0'*(8-(zeros))
-
-tocode = []
-for e in code:
-  tocode.append(int(e))
+zeros = 6 - len(code)%6
+if len(code)%6 != 0:
+  code = code + '00000000'[len(code)%6:6]
 
 comp = code_to_string(code)
 
@@ -146,28 +126,30 @@ writefile(ex_filename, tree, comp)
 file = 'result.hff'
 text2 = readfile(file)
 
-limit = text2.find('}')
+pos = 0
+while(1):
+  limit = text2.find('}', pos)
+  if text2[limit+1] != '"':
+    break
+  else:
+    pos = limit + 1
 tree2 = ast.literal_eval(text2[:limit+1])
 zeros2 = tree['999']
 text2 = text2[limit+1:] # the encoded text
 
-print(len(text2),len(comp))
-
 back = string_to_code(text2)
-code2 = ''.join(str(e) for e in back)
+back = back[:(len(back)-zeros2)] # deleting the redundancies
 
-code2 = code2[:(len(code2)-zeros2)] # deleting the redundancies
-decoded = decode(tree2, text2)
+decoded = decode(tree2, back)
 
 f = open('decompressed.txt', 'w', encoding=encod)
 f.write(decoded)
 f.close()
-# if it has gone well or not
 print(decoded == original_text)
-
-### find the error (if it exists) and print the position, what there is, and what should have been
-##for i in range(len(original_text)):
-##  if decoded[i] != original_text[i]:
-##    print(i,decoded[i],original_text[i])
-##    break
+print(len(decoded),len(original_text))
+# find the error (if it exists) and print the position, what there is, and what should have been
+for i in range(len(original_text)):
+  if decoded[i] != original_text[i]:
+    print(i,decoded[i],original_text[i])
+    break
 
