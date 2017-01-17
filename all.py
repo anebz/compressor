@@ -12,8 +12,11 @@ origin_path = ''
 origin_data = ''
 destination_path = ''
 destination_data = ''
+first_ext = ''
 zeros = 0
 num = 7
+b1 = 0
+b2 = 0
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 
@@ -159,16 +162,24 @@ def open_origin_file(path, entry):
 
   global origin_data
   global origin_path
+  global first_ext
+  global b1,b2
 
   options = {}
-  options['defaultextension'] = '.txt'
-  options['filetypes'] = [('text files', '.txt'),('Huffman-compressed files', '.hff')]
+  options['filetypes'] = [('text files [.txt]', '.txt'),('Huffman-compressed files [.hff]', '.hff')]
   options['initialdir'] = 'C:\\' + origin_path
   options['title'] = 'Choose file'
   
   filename = filedialog.askopenfilename(**options)
 
   if filename:
+    first_ext = filename[-3:]
+    if first_ext == 'txt':
+      b1.config(state = 'active')
+      b2.config(state = 'disabled')
+    elif first_ext == 'hff':
+      b1.config(state = 'disabled')
+      b2.config(state = 'active')
     origin_data = open(filename, 'r', encoding='utf-8').read()
     origin_path = filename
     entry.delete(0, END)
@@ -179,10 +190,15 @@ def open_destination_file(path, entry):
   
   global destination_data
   global destination_path
+  global first_ext
 
   options = {}
-  options['defaultextension'] = '.hff'
-  options['filetypes'] = [('text files', '.txt'),('Huffman-compressed files', '.hff')]
+  if first_ext == 'txt':
+    options['defaultextension'] = '.hff'
+    options['filetypes'] = [('Huffman-compressed files [.hff]', '.hff')]
+  elif first_ext == 'hff':
+    options['defaultextension'] = '.txt'
+    options['filetypes'] = [('text files [.txt]', '.txt')]                    
   options['initialdir'] = 'C:\\' + origin_path
   options['title'] = 'Choose file'
   
@@ -191,6 +207,7 @@ def open_destination_file(path, entry):
   if filename:
     destination_data = open(filename, 'w', encoding='utf-8')
     destination_path = filename
+    entry.delete(0, END)
     entry.insert(0, destination_path)
 
 
@@ -201,10 +218,8 @@ root.title('Huffman Compressor')
 # "width x height + hor_pos + ver_pos"
 root.geometry("750x150+250+300")
 
-
 mf = Frame(root)
 mf.pack()
-
 
 f1 = Frame(mf, width=500, height=50)
 f1.pack(fill=X) # make all widgets as wide as the parent widget
@@ -221,11 +236,14 @@ Label(f1,text="Select destination file").grid(row=1, column=0, sticky='e')
 entry2 = Entry(f1, width=75, textvariable=destination_path)
 entry2.grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
+b1 = Button(f2, text="Compress", width=25, command=lambda: compression())
+b1.grid(row=2, column=2,sticky='ew', padx=5)
+b2 = Button(f2, text="Decompress", width=25, command=lambda: decompression())
+b2.grid(row=2, column=3, sticky='ew', padx=5)
+
 Button(f1, text="...", command=lambda: open_origin_file(origin_path, entry1)).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
 Button(f1, text="...", command=lambda: open_destination_file(destination_path, entry2)).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
 
-Button(f2, text="Compress", width=25, command=lambda: compression()).grid(row=2, column=2,sticky='ew', padx=5)
-Button(f2, text="Decompress", width=25, command=lambda: decompression()).grid(row=2, column=3, sticky='ew', padx=5)
 # state=DISABLED, 
 # main
 root.mainloop()
