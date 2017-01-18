@@ -11,7 +11,6 @@ import ast
 origin_path = ''
 origin_data = ''
 destination_path = ''
-destination_data = ''
 first_ext = ''
 zeros = 0
 num = 7
@@ -159,10 +158,10 @@ def decompression():
   print(open('text_sample.txt', encoding='utf-8').read() == decoded)
 
 # ~~~~ GUI FUNCTIONS ~~~~
-def open_origin_file(path, entry):
+def open_origin_file(path, entry, entry2):
 
   global origin_data
-  global origin_path
+  global origin_path, destination_path
   global first_ext
   global b1,b2
 
@@ -175,12 +174,17 @@ def open_origin_file(path, entry):
 
   if filename:
     first_ext = filename[-3:]
+    entry2.delete(0, END)
     if first_ext == 'txt':
       b1.config(state = 'active')
       b2.config(state = 'disabled')
+      destination_path = filename[:-3] + 'hff'
+      entry2.insert(0, destination_path)
     elif first_ext == 'hff':
       b1.config(state = 'disabled')
       b2.config(state = 'active')
+      destination_path = filename[:-3] + 'txt'
+      entry2.insert(0, destination_path)
     origin_data = open(filename, 'r', encoding='utf-8').read()
     origin_path = filename
     entry.delete(0, END)
@@ -189,7 +193,6 @@ def open_origin_file(path, entry):
 
 def open_destination_file(path, entry):
   
-  global destination_data
   global destination_path
   global first_ext
 
@@ -206,7 +209,6 @@ def open_destination_file(path, entry):
   filename = filedialog.asksaveasfilename(**options)
   
   if filename:
-    destination_data = open(filename, 'w', encoding='utf-8')
     destination_path = filename
     entry.delete(0, END)
     entry.insert(0, destination_path)
@@ -242,9 +244,7 @@ b1.grid(row=2, column=2,sticky='ew', padx=5)
 b2 = Button(f2, text="Decompress", width=25, command=lambda: decompression())
 b2.grid(row=2, column=3, sticky='ew', padx=5)
 
-Button(f1, text="...", command=lambda: open_origin_file(origin_path, entry1)).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="...", command=lambda: open_origin_file(origin_path, entry1, entry2)).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
 Button(f1, text="...", command=lambda: open_destination_file(destination_path, entry2)).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
 
-# state=DISABLED, 
-# main
 root.mainloop()
