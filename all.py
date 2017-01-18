@@ -26,7 +26,8 @@ def readfile(filename):
 
 def writefile(filename, tree, string):
   f = open(filename, 'w', encoding='utf-8')
-  json.dump(tree, f) # dump tree
+  if tree != {}:
+    json.dump(tree, f) # dump tree
   f.write(string)
   f.close()
 
