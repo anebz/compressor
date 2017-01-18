@@ -18,8 +18,6 @@ b1 = 0
 b2 = 0
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
-
-# should be a .txt
 def readfile(filename):
   return open(filename, encoding='utf-8').read()
 
@@ -33,26 +31,21 @@ def writefile(filename, tree, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
-  for i in range(10000):
+  for i in range(5000):
     if string.count(chr(i)):
       freq[chr(i)] = string.count(chr(i))*1.0/leng
-  if string.count('’'):
-    freq['’'] = string.count('’')*1.0/leng
   return freq
 
-# returns the second smallest element in a numeric list
-def second_smallest(numbers):
-  return sorted(numbers,key=float)[1]
-
 # returns a list with the Huffman-encoded ASCII table
-def constructHuffmanTree(text, count):
+def constructHuffmanTree(text):
+  count = frequency(text)
   savedCoding = dict.fromkeys(count.keys(), '')
   aux = dict(count)
   for ii in range(len(count) - 1):
     flag = 0
     dictValues = list(aux.values())
     smallestElementValue = min(dictValues)
-    secondSmallestElementValue = second_smallest(dictValues)
+    secondSmallestElementValue = sorted(dictValues,key=float)[1]
     for key,value in aux.items():
       if value == smallestElementValue or value == secondSmallestElementValue:
         flag += 1
@@ -72,8 +65,7 @@ def constructHuffmanTree(text, count):
     del aux[node2]
   return savedCoding
 
-# given a tree in this format: {'a':0, 'b':10, 'c':11}
-# and words being the string read from the file
+# given a tree and words being the string read from the file, returns a binary sequence
 def encode(tree,words):
   code = ''
   for let in words:
@@ -116,8 +108,7 @@ def compression():
   origin_data += ' '
   
   #Constructing the tree
-  characterCounter = frequency(origin_data)
-  tree = constructHuffmanTree(origin_data, characterCounter)
+  tree = constructHuffmanTree(origin_data)
 
   code = encode(tree,origin_data)
   zeros = num - len(code)%num
