@@ -9,13 +9,13 @@ import ast
 
 # ~~~~ GLOBAL VARIABLES ~~~~
 origin_path = ''
-origin_data = ''
-destination_path = ''
 first_ext = ''
 zeros = 0
 num = 7
 b1 = 0
 b2 = 0
+e1 = 0
+e2 = 0
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 def readfile(filename):
@@ -31,9 +31,9 @@ def writefile(filename, tree, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
-  for i in range(5000):
-    if string.count(chr(i)):
-      freq[chr(i)] = string.count(chr(i))*1.0/leng
+  for i in set(string):
+    if string.count(i):
+      freq[i] = string.count(i)*1.0/leng
   return freq
 
 # returns a list with the Huffman-encoded ASCII table
@@ -102,9 +102,10 @@ def string_to_code(text):
 
 def compression():
 
-  global origin_data #original text
-  global destination_path
+  global e1, e2
 
+  origin_data = open(e1.get(), 'r', encoding='utf-8').read()
+  destination_path = e2.get()
   origin_data += ' '
   
   #Constructing the tree
@@ -124,9 +125,9 @@ def compression():
   
 
 def decompression():
-    
-  global origin_data #original text
-  global destination_path
+
+  origin_data = open(e1.get(), 'r', encoding='utf-8').read()
+  destination_path = e2.get()
 
   text2 = origin_data
   pos = 0
@@ -149,10 +150,9 @@ def decompression():
   print(open('text_sample.txt', encoding='utf-8').read() == decoded)
 
 # ~~~~ GUI FUNCTIONS ~~~~
-def open_origin_file(path, entry, entry2):
-
-  global origin_data
-  global origin_path, destination_path
+def open_origin_file(entry, entry2):
+  
+  global origin_path
   global first_ext
   global b1,b2
 
@@ -169,22 +169,17 @@ def open_origin_file(path, entry, entry2):
     if first_ext == 'txt':
       b1.config(state = 'active')
       b2.config(state = 'disabled')
-      destination_path = filename[:-3] + 'hff'
-      entry2.insert(0, destination_path)
+      entry2.insert(0, filename[:-3] + 'hff')
     elif first_ext == 'hff':
       b1.config(state = 'disabled')
       b2.config(state = 'active')
-      destination_path = filename[:-3] + 'txt'
-      entry2.insert(0, destination_path)
-    origin_data = open(filename, 'r', encoding='utf-8').read()
+      entry2.insert(0, filename[:-3] + 'txt')
     origin_path = filename
     entry.delete(0, END)
     entry.insert(0, origin_path)
 
-
-def open_destination_file(path, entry):
+def open_destination_file(entry):
   
-  global destination_path
   global first_ext
 
   options = {}
@@ -200,9 +195,8 @@ def open_destination_file(path, entry):
   filename = filedialog.asksaveasfilename(**options)
   
   if filename:
-    destination_path = filename
     entry.delete(0, END)
-    entry.insert(0, destination_path)
+    entry.insert(0, filename)
 
 
   # ~~~~~~ GUI ~~~~~~~~
@@ -223,19 +217,19 @@ f2.pack()
 # sticky: to change the fact that widgets are centered in their cells
 # N(north), S(south), E(east), W(west)
 Label(f1,text="Select origin file").grid(row=0, column=0, sticky='e')
-entry1 = Entry(f1, width=75, textvariable=origin_path)
-entry1.grid(row=0,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
+e1 = Entry(f1, width=75, textvariable=origin_path)
+e1.grid(row=0,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
 Label(f1,text="Select destination file").grid(row=1, column=0, sticky='e')
-entry2 = Entry(f1, width=75, textvariable=destination_path)
-entry2.grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
+e2 = Entry(f1, width=75, textvariable='')
+e2.grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
 b1 = Button(f2, text="Compress", width=25, command=lambda: compression())
 b1.grid(row=2, column=2,sticky='ew', padx=5)
 b2 = Button(f2, text="Decompress", width=25, command=lambda: decompression())
 b2.grid(row=2, column=3, sticky='ew', padx=5)
 
-Button(f1, text="...", command=lambda: open_origin_file(origin_path, entry1, entry2)).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
-Button(f1, text="...", command=lambda: open_destination_file(destination_path, entry2)).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="...", command=lambda: open_origin_file(e1, e2)).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="...", command=lambda: open_destination_file(e2)).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
 
 root.mainloop()
