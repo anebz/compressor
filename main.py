@@ -33,30 +33,45 @@ def second_smallest(numbers):
 
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, count):
-  savedCoding = dict.fromkeys(count.keys(), '')
+  count = frequency(text)
   aux = dict(count)
-  for ii in range(len(count) - 1):
+  savedCoding = dict()
+  for ii in range(len(count) - 2):
     flag = 0
+    auxDict = dict()
     dictValues = list(aux.values())
     smallestElementValue = min(dictValues)
-    secondSmallestElementValue = second_smallest(dictValues)
+    secondSmallestElementValue = sorted(dictValues,key=float)[1]
     for key,value in aux.items():
       if value == smallestElementValue or value == secondSmallestElementValue:
         flag += 1
         if flag == 1:
           node1 = key
-          for jj in key:
-            savedCoding[jj] = '0' + savedCoding[jj]
+          if node1 in savedCoding.keys():
+            auxDict['0'] = savedCoding[node1]
+          else:
+            auxDict['0'] = node1
         elif flag == 2:
           node2 = key
-          for jj in key:
-            savedCoding[jj] = '1' + savedCoding[jj]
-          break
+          if node2 in savedCoding.keys():
+            auxDict['1'] = savedCoding[node2]
+          else:
+            auxDict['1'] = node2
+          break    
     aux[node1] = aux[node1] + aux[node2]
     newLetter = node1 + node2
     aux[newLetter] = aux[node1]
+    savedCoding[newLetter] = auxDict
     del aux[node1]
     del aux[node2]
+    del auxDict
+    if node1 in savedCoding.keys():
+      del savedCoding[node1]
+    if node2 in savedCoding.keys():
+      del savedCoding[node2]
+  finalKeys = list(savedCoding.keys())
+  savedCoding['0'] = savedCoding.pop(finalKeys[0])
+  savedCoding['1'] = savedCoding.pop(finalKeys[1])
   return savedCoding
 
 # given a tree in this format: {'a':0, 'b':10, 'c':11}
@@ -104,7 +119,7 @@ original_text = readfile(file)
 #Constructing the tree
 characterCounter = frequency(original_text)
 tree = constructHuffmanTree(original_text, characterCounter)
-
+print(tree)
 words = original_text
 code = encode(tree,words)
 
