@@ -125,7 +125,7 @@ original_text = readfile(file)
 characterCounter = frequency(original_text)
 tree, encodingTree = constructHuffmanTree(original_text, characterCounter) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
 print(tree)
-print(encodingTree)
+#print(encodingTree)
 words = original_text
 code = encode(encodingTree,words)
 
@@ -150,7 +150,7 @@ text2 = readfile(file)
 pos = 0
 while(1):
   limit = text2.find('}', pos)
-  if text2[limit+1] != '"':
+  if text2[limit+1] != '}' and text2[limit-1] == '}' and text2[limit+1] != ',':
     break
   else:
     pos = limit + 1
