@@ -90,14 +90,14 @@ def code_to_string(code):
   return compressed
 
 #Decoding function
-def decode(tree2, code):
-  tree = {value:key for key,value in tree2.items()}
-  text,add = '',''
-  for i in range(len(code)):    
-    add += code[i]
-    if add in tree.keys():
-      text += tree[add]
-      add = ''
+def decode(tree, code):
+  node = tree
+  text = ''
+  for ii in code:
+    if type(node[ii]) is dict:
+      node = node[ii]
+    elif type(node[ii]) is str:
+      text += node[ii]
   return text
 
 def string_to_code(text):
