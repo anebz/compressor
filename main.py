@@ -35,6 +35,7 @@ def second_smallest(numbers):
 def constructHuffmanTree(text, count):
   count = frequency(text)
   aux = dict(count)
+  auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
   for ii in range(len(count) - 2):
     flag = 0
@@ -47,12 +48,16 @@ def constructHuffmanTree(text, count):
         flag += 1
         if flag == 1:
           node1 = key
+          for jj in key:
+            auxTree[jj] = '0' + auxTree[jj]
           if node1 in savedCoding.keys():
             auxDict['0'] = savedCoding[node1]
           else:
             auxDict['0'] = node1
         elif flag == 2:
           node2 = key
+          for jj in key:
+            auxTree[jj] = '1' + auxTree[jj]
           if node2 in savedCoding.keys():
             auxDict['1'] = savedCoding[node2]
           else:
@@ -72,7 +77,7 @@ def constructHuffmanTree(text, count):
   finalKeys = list(savedCoding.keys())
   savedCoding['0'] = savedCoding.pop(finalKeys[0])
   savedCoding['1'] = savedCoding.pop(finalKeys[1])
-  return savedCoding
+  return savedCoding, auxTree
 
 # given a tree in this format: {'a':0, 'b':10, 'c':11}
 # and words being the string read from the file
@@ -118,10 +123,11 @@ original_text = readfile(file)
 
 #Constructing the tree
 characterCounter = frequency(original_text)
-tree = constructHuffmanTree(original_text, characterCounter)
+tree, encodingTree = constructHuffmanTree(original_text, characterCounter) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
 print(tree)
+print(encodingTree)
 words = original_text
-code = encode(tree,words)
+code = encode(encodingTree,words)
 
 zeros = 6 - len(code)%6
 if len(code)%6 != 0:
@@ -148,7 +154,7 @@ while(1):
     break
   else:
     pos = limit + 1
-tree2 = ast.literal_eval(text2[:limit+1])
+tree2 = ast.literal_eval(text2[:limit+1]) ##PETAAAAAAAA!!!!!!!!
 zeros2 = tree['999']
 text2 = text2[limit+1:] # the encoded text
 
