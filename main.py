@@ -124,7 +124,7 @@ original_text = readfile(file)
 #Constructing the tree
 characterCounter = frequency(original_text)
 tree, encodingTree = constructHuffmanTree(original_text, characterCounter) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
-print(tree)
+#print(tree)
 #print(encodingTree)
 words = original_text
 code = encode(encodingTree,words)
@@ -141,6 +141,7 @@ print("Compresion rate:", len(comp)/len(original_text))
 extension = 'hff'
 ex_filename = 'result' + '.' + extension
 tree['999'] = zeros
+print(tree)
 writefile(ex_filename, tree, comp)
 
 ## DECODING
@@ -150,11 +151,16 @@ text2 = readfile(file)
 pos = 0
 while(1):
   limit = text2.find('}', pos)
+  #if text2[limit+1] != '"':
   if text2[limit+1] != '}' and text2[limit-1] == '}' and text2[limit+1] != ',':
     break
   else:
     pos = limit + 1
 tree2 = ast.literal_eval(text2[:limit+1]) ##PETAAAAAAAA!!!!!!!!
+
+print(tree2)
+print(tree2 == encodingTree)
+
 zeros2 = tree['999']
 text2 = text2[limit+1:] # the encoded text
 
