@@ -103,6 +103,7 @@ def decode(tree, code):
       node = node[ii]
     elif type(node[ii]) is str:
       text += node[ii]
+      node = tree
   return text
 
 def string_to_code(text):
@@ -120,12 +121,13 @@ def string_to_code(text):
 # open file
 file = 'text_sample.txt'
 original_text = readfile(file)
+original_text = 'Lorem ipsum' ## DELETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 #Constructing the tree
 characterCounter = frequency(original_text)
 tree, encodingTree = constructHuffmanTree(original_text, characterCounter) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
-#print(tree)
-#print(encodingTree)
+print(tree)
+print(encodingTree)
 words = original_text
 code = encode(encodingTree,words)
 
@@ -141,32 +143,35 @@ print("Compresion rate:", len(comp)/len(original_text))
 extension = 'hff'
 ex_filename = 'result' + '.' + extension
 tree['999'] = zeros
-print(tree)
+#print(tree)
 writefile(ex_filename, tree, comp)
 
 ## DECODING
 file = 'result.hff'
 text2 = readfile(file)
+text2 = 'r' + text2 # to escape newline characters
 
-pos = 0
-while(1):
-  limit = text2.find('}', pos)
-  #if text2[limit+1] != '"':
-  if text2[limit+1] != '}' and text2[limit-1] == '}' and text2[limit+1] != ',':
-    break
-  else:
-    pos = limit + 1
-tree2 = ast.literal_eval(text2[:limit+1]) ##PETAAAAAAAA!!!!!!!!
+cnt = 0
+for i in range(1,len(text2)):
+  if text2[i] == '{':
+    cnt += 1
+  elif text2[i] == '}':
+    cnt -= 1
+  if cnt == 0:
+    print(text2[1:i+1])
+    tree2 = ast.literal_eval(text2[1:i+1])
+    break;
 
-print(tree2)
-print(tree2 == encodingTree)
+#print(tree2)
+print('Trees equal?',tree2 == tree)
 
 zeros2 = tree['999']
-text2 = text2[limit+1:] # the encoded text
+text2 = text2[i+1:] # the encoded text
 
 back = string_to_code(text2)
 back = back[:(len(back)-zeros2)] # deleting the redundancies
 
+print(back[:50])
 decoded = decode(tree2, back)
 
 f = open('decompressed.txt', 'w', encoding=encod)
