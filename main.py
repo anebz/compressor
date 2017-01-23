@@ -37,7 +37,8 @@ def constructHuffmanTree(text, count):
   aux = dict(count)
   auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
-  for ii in range(len(count) - 2):
+  numbers = range(len(count) - 2)
+  for ii in numbers:
     flag = 0
     auxDict = dict()
     dictValues = list(aux.values())
@@ -50,17 +51,17 @@ def constructHuffmanTree(text, count):
           node1 = key
           for jj in key:
             auxTree[jj] = '0' + auxTree[jj]
-          if node1 in savedCoding.keys():
+          if node1 in savedCoding.keys() and ii != numbers[-1]:
             auxDict['0'] = savedCoding[node1]
-          else:
+          elif ii != numbers[-1]:
             auxDict['0'] = node1
         elif flag == 2:
           node2 = key
           for jj in key:
             auxTree[jj] = '1' + auxTree[jj]
-          if node2 in savedCoding.keys():
+          if node2 in savedCoding.keys() and ii != numbers[-1]:
             auxDict['1'] = savedCoding[node2]
-          else:
+          elif ii != numbers[-1]:
             auxDict['1'] = node2
           break    
     aux[node1] = aux[node1] + aux[node2]
