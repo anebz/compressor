@@ -2,6 +2,7 @@
 import operator
 import json
 import ast
+import math
 
 # Global Variables
 zeros = 0
@@ -126,7 +127,7 @@ def string_to_code(text):
 # open file
 file = 'text_sample.txt'
 original_text = readfile(file)
-original_text = 'Lorem ipsum' ## DELETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+#original_text = 'Lorem ipsum' ## DELETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 #Constructing the tree
 characterCounter = frequency(original_text)
@@ -142,7 +143,7 @@ if len(code)%6 != 0:
 
 comp = code_to_string(code)
 
-print("Compresion rate:", len(comp)/len(original_text))
+print("Compresion rate:", math.fabs(1 - (len(comp)/len(original_text)))*100, "%")
 
 # write in file
 extension = 'hff'
