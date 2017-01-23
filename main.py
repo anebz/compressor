@@ -28,13 +28,8 @@ def frequency(string):
     freq['’'] = string.count('’')*1.0/leng
   return freq
 
-# returns the second smallest element in a numeric list
-def second_smallest(numbers):
-  return sorted(numbers,key=float)[1]
-
 # returns a list with the Huffman-encoded ASCII table
-def constructHuffmanTree(text, count):
-  
+def constructHuffmanTree(text):
   count = frequency(text)
   aux = dict(count)
   auxTree = dict.fromkeys(count.keys(), '')
@@ -130,10 +125,7 @@ original_text = readfile(file)
 #original_text = 'Lorem ipsum' ## DELETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 #Constructing the tree
-characterCounter = frequency(original_text)
-tree, encodingTree = constructHuffmanTree(original_text, characterCounter) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
-print(tree)
-print(encodingTree)
+tree, encodingTree = constructHuffmanTree(original_text) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
 words = original_text
 code = encode(encodingTree,words)
 
@@ -164,12 +156,8 @@ for i in range(1,len(text2)):
   elif text2[i] == '}':
     cnt -= 1
   if cnt == 0:
-    print(text2[1:i+1])
     tree2 = ast.literal_eval(text2[1:i+1])
     break;
-
-#print(tree2)
-print('Trees equal?',tree2 == tree)
 
 zeros2 = tree['999']
 text2 = text2[i+1:] # the encoded text
@@ -177,7 +165,6 @@ text2 = text2[i+1:] # the encoded text
 back = string_to_code(text2)
 back = back[:(len(back)-zeros2)] # deleting the redundancies
 
-print(back[:50])
 decoded = decode(tree2, back)
 
 f = open('decompressed.txt', 'w', encoding=encod)
@@ -186,8 +173,8 @@ f.close()
 print(decoded == original_text)
 print(len(decoded),len(original_text))
 # find the error (if it exists) and print the position, what there is, and what should have been
-for i in range(len(original_text)):
-  if decoded[i] != original_text[i]:
-    print(i,decoded[i],original_text[i])
-    break
+##for i in range(len(original_text)):
+##  if decoded[i] != original_text[i]:
+##    print(i,decoded[i],original_text[i])
+##    break
 

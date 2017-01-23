@@ -6,7 +6,6 @@ from tkinter import filedialog
 import operator
 import json
 import ast
-import math
 
 # ~~~~ GLOBAL VARIABLES ~~~~
 origin_path = ''
@@ -32,12 +31,11 @@ def writefile(filename, tree, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
-  for i in range(10000):
-    if string.count(chr(i)):
-      freq[chr(i)] = string.count(chr(i))*1.0/leng
-  if string.count('’'):
-    freq['’'] = string.count('’')*1.0/leng
+  for i in set(string):
+    if string.count(i):
+      freq[i] = string.count(i)*1.0/leng
   return freq
+
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text):
   count = frequency(text)
@@ -88,6 +86,7 @@ def constructHuffmanTree(text):
   savedCoding['1'] = savedCoding.pop(finalKeys[1])
   return savedCoding, auxTree
 
+
 # given a tree and words being the string read from the file, returns a binary sequence
 def encode(tree,words):
   code = ''
@@ -135,9 +134,8 @@ def compression():
   origin_data += ' '
   
   #Constructing the tree
-  treeDecoded, treeEncoded = constructHuffmanTree(origin_data)
-
-  code = encode(treeEncoded,origin_data)
+  tree, encodingTree = constructHuffmanTree(origin_data)
+  code = encode(encodingTree,origin_data)
   zeros = num - len(code)%num
   if len(code)%num != 0:
     code = code + '0000000'[len(code)%num:num]
@@ -146,8 +144,8 @@ def compression():
   print("Compresion rate:", len(compressed)/len(origin_data))
 
   # write in file
-  treeDecoded['999'] = zeros
-  writefile(destination_path, treeDecoded, compressed)
+  tree['999'] = zeros
+  writefile(destination_path, tree, compressed)
   
 
 def decompression():
@@ -155,9 +153,8 @@ def decompression():
   origin_data = open(e1.get(), 'r', encoding='utf-8').read()
   destination_path = e2.get()
 
-  text2 = readfile(origin_data)
+  text2 = origin_data
   text2 = 'r' + text2 # to escape newline characters
-
   cnt = 0
   for i in range(1,len(text2)):
     if text2[i] == '{':
@@ -165,15 +162,14 @@ def decompression():
     elif text2[i] == '}':
       cnt -= 1
     if cnt == 0:
-      print(text2[1:i+1])
       tree2 = ast.literal_eval(text2[1:i+1])
       break;
   zeros2 = tree2['999']
-  text2 = text2[limit+1:] # the encoded text
+  text2 = text2[i+1:] # the encoded text
 
   back = string_to_code(text2)
   back = back[:(len(back)-zeros2)] # deleting the redundancies
-  decoded = decode(tree2, back)
+  decoded = decode(tree2, back)[:-1]
 
   writefile(destination_path, {}, decoded)
 
