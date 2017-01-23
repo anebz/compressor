@@ -33,11 +33,12 @@ def second_smallest(numbers):
 
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, count):
+  
   count = frequency(text)
   aux = dict(count)
   auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
-  numbers = range(len(count) - 2)
+  numbers = range(len(count) - 1)
   for ii in numbers:
     flag = 0
     auxDict = dict()
@@ -67,13 +68,14 @@ def constructHuffmanTree(text, count):
     aux[node1] = aux[node1] + aux[node2]
     newLetter = node1 + node2
     aux[newLetter] = aux[node1]
-    savedCoding[newLetter] = auxDict
+    if ii != numbers[-1]:
+      savedCoding[newLetter] = auxDict
     del aux[node1]
     del aux[node2]
     del auxDict
-    if node1 in savedCoding.keys():
+    if node1 in savedCoding.keys() and ii != numbers[-1]:
       del savedCoding[node1]
-    if node2 in savedCoding.keys():
+    if node2 in savedCoding.keys() and ii != numbers[-1]:
       del savedCoding[node2]
   finalKeys = list(savedCoding.keys())
   savedCoding['0'] = savedCoding.pop(finalKeys[0])
@@ -100,7 +102,9 @@ def decode(tree, code):
   node = tree
   text = ''
   for ii in code:
-    if type(node[ii]) is dict:
+    if ii not in node:
+      return text
+    elif type(node[ii]) is dict:
       node = node[ii]
     elif type(node[ii]) is str:
       text += node[ii]
