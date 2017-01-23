@@ -6,6 +6,7 @@ from tkinter import filedialog
 import operator
 import json
 import ast
+import math
 
 # ~~~~ GLOBAL VARIABLES ~~~~
 origin_path = ''
@@ -31,18 +32,22 @@ def writefile(filename, tree, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
-  for i in set(string):
-    if string.count(i):
-      freq[i] = string.count(i)*1.0/leng
+  for i in range(10000):
+    if string.count(chr(i)):
+      freq[chr(i)] = string.count(chr(i))*1.0/leng
+  if string.count('’'):
+    freq['’'] = string.count('’')*1.0/leng
   return freq
-
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text):
   count = frequency(text)
-  savedCoding = dict.fromkeys(count.keys(), '')
   aux = dict(count)
-  for ii in range(len(count) - 1):
+  auxTree = dict.fromkeys(count.keys(), '')
+  savedCoding = dict()
+  numbers = range(len(count) - 1)
+  for ii in numbers:
     flag = 0
+    auxDict = dict()
     dictValues = list(aux.values())
     smallestElementValue = min(dictValues)
     secondSmallestElementValue = sorted(dictValues,key=float)[1]
@@ -52,18 +57,36 @@ def constructHuffmanTree(text):
         if flag == 1:
           node1 = key
           for jj in key:
-            savedCoding[jj] = '0' + savedCoding[jj]
+            auxTree[jj] = '0' + auxTree[jj]
+          if node1 in savedCoding.keys() and ii != numbers[-1]:
+            auxDict['0'] = savedCoding[node1]
+          elif ii != numbers[-1]:
+            auxDict['0'] = node1
         elif flag == 2:
           node2 = key
           for jj in key:
-            savedCoding[jj] = '1' + savedCoding[jj]
-          break
+            auxTree[jj] = '1' + auxTree[jj]
+          if node2 in savedCoding.keys() and ii != numbers[-1]:
+            auxDict['1'] = savedCoding[node2]
+          elif ii != numbers[-1]:
+            auxDict['1'] = node2
+          break    
     aux[node1] = aux[node1] + aux[node2]
     newLetter = node1 + node2
     aux[newLetter] = aux[node1]
+    if ii != numbers[-1]:
+      savedCoding[newLetter] = auxDict
     del aux[node1]
     del aux[node2]
-  return savedCoding
+    del auxDict
+    if node1 in savedCoding.keys() and ii != numbers[-1]:
+      del savedCoding[node1]
+    if node2 in savedCoding.keys() and ii != numbers[-1]:
+      del savedCoding[node2]
+  finalKeys = list(savedCoding.keys())
+  savedCoding['0'] = savedCoding.pop(finalKeys[0])
+  savedCoding['1'] = savedCoding.pop(finalKeys[1])
+  return savedCoding, auxTree
 
 # given a tree and words being the string read from the file, returns a binary sequence
 def encode(tree,words):
@@ -80,14 +103,17 @@ def code_to_string(code):
   return compressed
 
 #Decoding function
-def decode(tree2, code):
-  tree = {value:key for key,value in tree2.items()}
-  text,add = '',''
-  for i in range(len(code)):    
-    add += code[i]
-    if add in tree.keys():
-      text += tree[add]
-      add = ''
+def decode(tree, code):
+  node = tree
+  text = ''
+  for ii in code:
+    if ii not in node:
+      return text
+    elif type(node[ii]) is dict:
+      node = node[ii]
+    elif type(node[ii]) is str:
+      text += node[ii]
+      node = tree
   return text
 
 def string_to_code(text):
@@ -109,9 +135,9 @@ def compression():
   origin_data += ' '
   
   #Constructing the tree
-  tree = constructHuffmanTree(origin_data)
+  treeDecoded, treeEncoded = constructHuffmanTree(origin_data)
 
-  code = encode(tree,origin_data)
+  code = encode(treeEncoded,origin_data)
   zeros = num - len(code)%num
   if len(code)%num != 0:
     code = code + '0000000'[len(code)%num:num]
@@ -120,8 +146,8 @@ def compression():
   print("Compresion rate:", len(compressed)/len(origin_data))
 
   # write in file
-  tree['999'] = zeros
-  writefile(destination_path, tree, compressed)
+  treeDecoded['999'] = zeros
+  writefile(destination_path, treeDecoded, compressed)
   
 
 def decompression():
@@ -129,21 +155,25 @@ def decompression():
   origin_data = open(e1.get(), 'r', encoding='utf-8').read()
   destination_path = e2.get()
 
-  text2 = origin_data
-  pos = 0
-  while(1):
-    limit = text2.find('}', pos)
-    if text2[limit+1] != '"':
-      break
-    else:
-      pos = limit + 1
-  tree2 = ast.literal_eval(text2[:limit+1])
+  text2 = readfile(origin_data)
+  text2 = 'r' + text2 # to escape newline characters
+
+  cnt = 0
+  for i in range(1,len(text2)):
+    if text2[i] == '{':
+      cnt += 1
+    elif text2[i] == '}':
+      cnt -= 1
+    if cnt == 0:
+      print(text2[1:i+1])
+      tree2 = ast.literal_eval(text2[1:i+1])
+      break;
   zeros2 = tree2['999']
   text2 = text2[limit+1:] # the encoded text
 
   back = string_to_code(text2)
   back = back[:(len(back)-zeros2)] # deleting the redundancies
-  decoded = decode(tree2, back)[:-1]
+  decoded = decode(tree2, back)
 
   writefile(destination_path, {}, decoded)
 
