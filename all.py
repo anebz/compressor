@@ -1,33 +1,20 @@
-## GUI for python2.7
-
 import os
 from tkinter import *
 from tkinter import filedialog
 import operator
 import json
 import ast
+import math
 
 # ~~~~ GLOBAL VARIABLES ~~~~
 origin_path = ''
-first_ext = ''
-zeros = 0
-num = 7
-b1 = 0
-b2 = 0
-e1 = 0
-e2 = 0
+first_ext = '' # first extension of the origin file
+zeros = 0 # redundancies to be added in the code
+num = 7 # # bits to be used for encoding
+b = [0,0] # global variable for the buttons
+e = [0,0] # global variable for the entries
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
-def readfile(filename):
-  return open(filename, encoding='utf-8').read()
-
-def writefile(filename, tree, string):
-  f = open(filename, 'w', encoding='utf-8')
-  if tree != {}:
-    json.dump(tree, f) # dump tree
-  f.write(string)
-  f.close()
-
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
@@ -39,17 +26,16 @@ def frequency(string):
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text):
   count = frequency(text)
-  aux = dict(count)
   auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
   numbers = range(len(count) - 1)
   for ii in numbers:
     flag = 0
     auxDict = dict()
-    dictValues = list(aux.values())
+    dictValues = list(count.values())
     smallestElementValue = min(dictValues)
     secondSmallestElementValue = sorted(dictValues,key=float)[1]
-    for key,value in aux.items():
+    for key,value in count.items():
       if value == smallestElementValue or value == secondSmallestElementValue:
         flag += 1
         if flag == 1:
@@ -69,13 +55,13 @@ def constructHuffmanTree(text):
           elif ii != numbers[-1]:
             auxDict['1'] = node2
           break    
-    aux[node1] = aux[node1] + aux[node2]
+    count[node1] = count[node1] + count[node2]
     newLetter = node1 + node2
-    aux[newLetter] = aux[node1]
+    count[newLetter] = count[node1]
     if ii != numbers[-1]:
       savedCoding[newLetter] = auxDict
-    del aux[node1]
-    del aux[node2]
+    del count[node1]
+    del count[node2]
     del auxDict
     if node1 in savedCoding.keys() and ii != numbers[-1]:
       del savedCoding[node1]
@@ -86,23 +72,58 @@ def constructHuffmanTree(text):
   savedCoding['1'] = savedCoding.pop(finalKeys[1])
   return savedCoding, auxTree
 
-
 # given a tree and words being the string read from the file, returns a binary sequence
 def encode(tree,words):
+  global zeros
   code = ''
   for let in words:
     if let in tree.keys():
       code = code + str(tree[let])
-  return code
 
-def code_to_string(code): 
+  # add redundant zeroes
+  zeros = num - len(code)%num
+  if len(code)%num != 0:
+    code = code + '0000000'[len(code)%num:num]
+
+  # from binary string to char string
   compressed = ''
   for i in range(0,len(code),num):
     compressed = compressed + chr(int(code[i:i+num],2) + 40)
   return compressed
 
-#Decoding function
-def decode(tree, code):
+def compression():
+  # get the values from the entries
+  origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
+  destination_path = e[1].get()
+  origin_data += ' '
+  
+  # Tree generation and encoding
+  tree, encodingTree = constructHuffmanTree(origin_data)
+  compressed = encode(encodingTree,origin_data)
+  print("Compresion rate:", math.fabs(1 - (len(comp)/len(original_text)))*100, "%")
+
+  tree['999'] = zeros # save zeros in tree for future use
+
+  # write in file
+  f = open(destination_path, 'w', encoding='utf-8')
+  json.dump(tree, f) # dump tree
+  f.write(compressed)
+  f.close()
+
+
+
+# ~~~~ DECOMPRESSION FUNCTIONS ~~~~
+def decode(text, tree):
+  # string to code
+  code = ''
+  for e in text:
+    auxcode = bin(ord(e)-40)[2:]
+    if len(auxcode) != num:
+      auxcode = '0'*(num-len(auxcode)) + auxcode
+    code += auxcode
+  code = code[:(len(code)-tree['999'])] # deleting the redundancies
+
+  # code to decompressed string
   node = tree
   text = ''
   for ii in code:
@@ -113,75 +134,39 @@ def decode(tree, code):
     elif type(node[ii]) is str:
       text += node[ii]
       node = tree
-  return text
-
-def string_to_code(text):
-  code1 = ''
-  for e in text:
-    code0 = bin(ord(e)-40)[2:]
-    if len(code0) != num:
-      code0 = '0'*(num-len(code0)) + code0
-    code1 += code0
-  return code1 
-
-
-def compression():
-
-  global e1, e2
-
-  origin_data = open(e1.get(), 'r', encoding='utf-8').read()
-  destination_path = e2.get()
-  origin_data += ' '
+  return text[:-1]
   
-  #Constructing the tree
-  tree, encodingTree = constructHuffmanTree(origin_data)
-  code = encode(encodingTree,origin_data)
-  zeros = num - len(code)%num
-  if len(code)%num != 0:
-    code = code + '0000000'[len(code)%num:num]
-
-  compressed = code_to_string(code)
-  print("Compresion rate:", len(compressed)/len(origin_data))
-
-  # write in file
-  tree['999'] = zeros
-  writefile(destination_path, tree, compressed)
-  
-
 def decompression():
+  # get the values from the entries
+  origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
+  destination_path = e[1].get()
 
-  origin_data = open(e1.get(), 'r', encoding='utf-8').read()
-  destination_path = e2.get()
+  text_from_file = 'r' + origin_data # to escape newline characters
 
-  text2 = origin_data
-  text2 = 'r' + text2 # to escape newline characters
+  # extract dict (tree) from the string read from the file
   cnt = 0
-  for i in range(1,len(text2)):
-    if text2[i] == '{':
+  for i in range(1,len(text_from_file)):
+    if text_from_file[i] == '{':
       cnt += 1
-    elif text2[i] == '}':
+    elif text_from_file[i] == '}':
       cnt -= 1
     if cnt == 0:
-      tree2 = ast.literal_eval(text2[1:i+1])
+      tree2 = ast.literal_eval(text_from_file[1:i+1])
       break;
-  zeros2 = tree2['999']
-  text2 = text2[i+1:] # the encoded text
+  text_from_file = text_from_file[i+1:] # the encoded text
 
-  back = string_to_code(text2)
-  back = back[:(len(back)-zeros2)] # deleting the redundancies
-  decoded = decode(tree2, back)[:-1]
+  decoded = decode(text_from_file, tree2)
 
-  writefile(destination_path, {}, decoded)
+  f = open(destination_path, 'w', encoding='utf-8')
+  f.write(decoded)
+  f.close()
 
   print(open('text_sample.txt', encoding='utf-8').read() == decoded)
 
-# ~~~~ GUI FUNCTIONS ~~~~
-def open_origin_file(entry, entry2):
-  
-  global origin_path
-  global first_ext
-  global b1,b2
 
+# ~~~~ GUI FUNCTIONS ~~~~
+def open_origin_file():
+  global origin_path
   options = {}
   options['filetypes'] = [('text files [.txt]', '.txt'),('Huffman-compressed files [.hff]', '.hff')]
   options['initialdir'] = 'C:\\' + origin_path
@@ -189,25 +174,23 @@ def open_origin_file(entry, entry2):
   
   filename = filedialog.askopenfilename(**options)
 
-  if filename:
-    first_ext = filename[-3:]
-    entry2.delete(0, END)
+  if filename: # if filename exists
+    first_ext = filename[-3:] # get extension
+    e[1].delete(0, END)
+    # change button states depending on the extension of the origin file
     if first_ext == 'txt':
-      b1.config(state = 'active')
-      b2.config(state = 'disabled')
-      entry2.insert(0, filename[:-3] + 'hff')
+      b[0].config(state = 'active')
+      b[1].config(state = 'disabled')
+      e[1].insert(0, filename[:-3] + 'hff')
     elif first_ext == 'hff':
-      b1.config(state = 'disabled')
-      b2.config(state = 'active')
-      entry2.insert(0, filename[:-3] + 'txt')
+      b[0].config(state = 'disabled')
+      b[1].config(state = 'active')
+      e[1].insert(0, filename[:-3] + 'txt')
     origin_path = filename
-    entry.delete(0, END)
-    entry.insert(0, origin_path)
+    e[0].delete(0, END)
+    e[0].insert(0, origin_path)
 
-def open_destination_file(entry):
-  
-  global first_ext
-
+def open_destination_file():
   options = {}
   if first_ext == 'txt':
     options['defaultextension'] = '.hff'
@@ -221,11 +204,13 @@ def open_destination_file(entry):
   filename = filedialog.asksaveasfilename(**options)
   
   if filename:
-    entry.delete(0, END)
-    entry.insert(0, filename)
+    e[0].delete(0, END)
+    e[0].insert(0, filename)
 
 
-  # ~~~~~~ GUI ~~~~~~~~
+
+
+  # ~~~~~~ MAIN ~~~~~~~~
 root = Tk()
 root.title('Huffman Compressor')
 # geometry of the window
@@ -243,19 +228,20 @@ f2.pack()
 # sticky: to change the fact that widgets are centered in their cells
 # N(north), S(south), E(east), W(west)
 Label(f1,text="Select origin file").grid(row=0, column=0, sticky='e')
-e1 = Entry(f1, width=75, textvariable=origin_path)
-e1.grid(row=0,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
+e[0] = Entry(f1, width=75, textvariable=origin_path) # entry for origin file
+e[0].grid(row=0,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
 Label(f1,text="Select destination file").grid(row=1, column=0, sticky='e')
-e2 = Entry(f1, width=75, textvariable='')
-e2.grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
+e[1] = Entry(f1, width=75, textvariable='') # entry for destination file
+e[1].grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
-b1 = Button(f2, text="Compress", width=25, command=lambda: compression())
-b1.grid(row=2, column=2,sticky='ew', padx=5)
-b2 = Button(f2, text="Decompress", width=25, command=lambda: decompression())
-b2.grid(row=2, column=3, sticky='ew', padx=5)
+b[0] = Button(f2, text="Compress", width=25, command=lambda: compression()) # compression button
+b[0].grid(row=2, column=2,sticky='ew', padx=5)
+b[1] = Button(f2, text="Decompress", width=25, command=lambda: decompression()) # decompression button
+b[1].grid(row=2, column=3, sticky='ew', padx=5)
 
-Button(f1, text="...", command=lambda: open_origin_file(e1, e2)).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
-Button(f1, text="...", command=lambda: open_destination_file(e2)).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="...", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="...", command=lambda: open_destination_file()).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
 
-root.mainloop()
+# do this as last thing
+root.mainloop() # so that the GUI is always waiting for input

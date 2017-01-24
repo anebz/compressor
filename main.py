@@ -7,11 +7,9 @@ import math
 # Global Variables
 zeros = 0
 encod = 'utf-8'
+num = 7
 
 # should be a .txt
-def readfile(filename):
-  return open(filename, encoding=encod).read()
-
 def writefile(filename, tree, string):
   f = open(filename, 'w', encoding=encod)
   json.dump(tree, f) # dump tree
@@ -21,27 +19,24 @@ def writefile(filename, tree, string):
 # returns a list with the frequencies of each letter in the string
 def frequency(string):
   freq, leng = {}, len(string)
-  for i in range(10000):
-    if string.count(chr(i)):
-      freq[chr(i)] = string.count(chr(i))*1.0/leng
-  if string.count('’'):
-    freq['’'] = string.count('’')*1.0/leng
+  for i in set(string):
+    if string.count(i):
+      freq[i] = string.count(i)*1.0/leng
   return freq
 
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text):
   count = frequency(text)
-  aux = dict(count)
   auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
   numbers = range(len(count) - 1)
   for ii in numbers:
     flag = 0
     auxDict = dict()
-    dictValues = list(aux.values())
+    dictValues = list(count.values())
     smallestElementValue = min(dictValues)
     secondSmallestElementValue = sorted(dictValues,key=float)[1]
-    for key,value in aux.items():
+    for key,value in count.items():
       if value == smallestElementValue or value == secondSmallestElementValue:
         flag += 1
         if flag == 1:
@@ -61,13 +56,13 @@ def constructHuffmanTree(text):
           elif ii != numbers[-1]:
             auxDict['1'] = node2
           break    
-    aux[node1] = aux[node1] + aux[node2]
+    count[node1] = count[node1] + count[node2]
     newLetter = node1 + node2
-    aux[newLetter] = aux[node1]
+    count[newLetter] = count[node1]
     if ii != numbers[-1]:
       savedCoding[newLetter] = auxDict
-    del aux[node1]
-    del aux[node2]
+    del count[node1]
+    del count[node2]
     del auxDict
     if node1 in savedCoding.keys() and ii != numbers[-1]:
       del savedCoding[node1]
@@ -81,20 +76,58 @@ def constructHuffmanTree(text):
 # given a tree in this format: {'a':0, 'b':10, 'c':11}
 # and words being the string read from the file
 def encode(tree,words):
+  global zeros
   code = ''
   for let in words:
     if let in tree.keys():
       code = code + str(tree[let])
-  return code
 
-def code_to_string(code): 
+  # add redundant zeroes
+  zeros = num - len(code)%num
+  if len(code)%num != 0:
+    code = code + '0000000'[len(code)%num:num]
+
+  # from binary string to char string
   compressed = ''
-  for i in range(0,len(code),6):
-    compressed = compressed + chr(int(code[i:i+6],2) + 40)
+  for i in range(0,len(code),num):
+    compressed = compressed + chr(int(code[i:i+num],2) + 40)
   return compressed
 
+
+##ENCODING
+def encoding(file):
+  # open file
+  original_text = open(file, encoding=encod).read()
+  original_text2 = original_text + ' '
+
+  #Constructing the tree
+  #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
+  tree, encodingTree = constructHuffmanTree(original_text2) 
+  words = original_text2
+  comp = encode(encodingTree,words)
+
+  print("Compresion rate:", math.fabs(1 - (len(comp)/len(original_text2)))*100, "%")
+
+  # write in file
+  extension = 'hff'
+  ex_filename = 'result' + '.' + extension
+  tree['999'] = zeros
+  #print(tree)
+  writefile(ex_filename, tree, comp)
+
+
 #Decoding function
-def decode(tree, code):
+def decode(text, tree):
+  # string to code
+  code = ''
+  for e in text:
+    auxcode = bin(ord(e)-40)[2:]
+    if len(auxcode) != num:
+      auxcode = '0'*(num-len(auxcode)) + auxcode
+    code += auxcode
+  code = code[:(len(code)-tree['999'])] # deleting the redundancies
+
+  # code to decompressed string
   node = tree
   text = ''
   for ii in code:
@@ -105,76 +138,50 @@ def decode(tree, code):
     elif type(node[ii]) is str:
       text += node[ii]
       node = tree
-  return text
-
-def string_to_code(text):
-  code1 = ''
-  for e in text:
-    code0 = bin(ord(e)-40)[2:]
-    if len(code0) != 6:
-      code0 = '0'*(6-len(code0)) + code0
-    code1 += code0
-  return code1 
-
-
-##ENCODING
-
-# open file
-file = 'text_sample.txt'
-original_text = readfile(file)
-#original_text = 'Lorem ipsum' ## DELETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-
-#Constructing the tree
-tree, encodingTree = constructHuffmanTree(original_text) #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
-words = original_text
-code = encode(encodingTree,words)
-
-zeros = 6 - len(code)%6
-if len(code)%6 != 0:
-  code = code + '00000000'[len(code)%6:6]
-
-comp = code_to_string(code)
-
-print("Compresion rate:", math.fabs(1 - (len(comp)/len(original_text)))*100, "%")
-
-# write in file
-extension = 'hff'
-ex_filename = 'result' + '.' + extension
-tree['999'] = zeros
-#print(tree)
-writefile(ex_filename, tree, comp)
+  return text[:-1]
 
 ## DECODING
-file = 'result.hff'
-text2 = readfile(file)
-text2 = 'r' + text2 # to escape newline characters
+def decoding(file):
+  file = 'result.hff'
+  text2 = open(file, encoding=encod).read()
+  text2 = 'r' + text2 # to escape newline characters
 
-cnt = 0
-for i in range(1,len(text2)):
-  if text2[i] == '{':
-    cnt += 1
-  elif text2[i] == '}':
-    cnt -= 1
-  if cnt == 0:
-    tree2 = ast.literal_eval(text2[1:i+1])
-    break;
+  cnt = 0
+  for i in range(1,len(text2)):
+    if text2[i] == '{':
+      cnt += 1
+    elif text2[i] == '}':
+      cnt -= 1
+    if cnt == 0:
+      tree2 = ast.literal_eval(text2[1:i+1])
+      break;
 
-zeros2 = tree['999']
-text2 = text2[i+1:] # the encoded text
+  text2 = text2[i+1:] # the encoded text
+  decoded = decode(text2, tree2)
 
-back = string_to_code(text2)
-back = back[:(len(back)-zeros2)] # deleting the redundancies
+  f = open('decompressed.txt', 'w', encoding=encod)
+  f.write(decoded)
+  f.close()
 
-decoded = decode(tree2, back)
 
-f = open('decompressed.txt', 'w', encoding=encod)
-f.write(decoded)
-f.close()
-print(decoded == original_text)
-print(len(decoded),len(original_text))
-# find the error (if it exists) and print the position, what there is, and what should have been
-##for i in range(len(original_text)):
-##  if decoded[i] != original_text[i]:
-##    print(i,decoded[i],original_text[i])
-##    break
+def compare(txt, txt2):
+  original = open(txt, encoding=encod).read()
+  decompressed = open(txt2, encoding=encod).read()
+  print(decompressed == original)
+  if decompressed != original:
+    print(len(decompressed),len(original))
 
+  # find the error (if it exists) and print the position, what there is, and what should have been
+  ##for i in range(len(original)):
+  ##  if decompressed[i] != original[i]:
+  ##    print(i,decompressed[i],original[i])
+  ##    break
+
+# MAIN
+txt = 'text_sample.txt'
+hff = 'result.hff'
+txt2 = 'decompressed.txt'
+encoding(txt)
+decoding(hff)
+
+compare(txt, txt2)
