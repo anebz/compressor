@@ -1,4 +1,6 @@
 import os
+import tkinter as tk
+from tkinter import ttk
 from tkinter import *
 from tkinter import filedialog
 import operator
@@ -13,6 +15,8 @@ zeros = 0 # redundancies to be added in the code
 num = 7 # # bits to be used for encoding
 b = [0,0] # global variable for the buttons
 e = [0,0] # global variable for the entries
+bites = 0
+maxbites = 0
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 # returns a list with the frequencies of each letter in the string
@@ -91,7 +95,26 @@ def encode(tree,words):
     compressed = compressed + chr(int(code[i:i+num],2) + 40)
   return compressed
 
-def compression():
+def read_bytes(progress):
+  '''simulate reading 500 bytes; update progress bar'''
+  global bites, maxbites
+  bites += 500
+  progress["value"] = bites
+  if bites < maxbites:
+    # read more bytes after 100 ms
+    after(100, read_bytes)
+
+def compression(progress):
+
+  #progress bar
+  global bites, maxbites
+  progress.grid(row=2, column=2,sticky='ew', padx=5)
+  progress.pack()
+  progress["value"] = 0
+  maxbytes = 50000
+  progress["maximum"] = 5000
+  read_bytes(progress)
+  
   # get the values from the entries
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
@@ -100,7 +123,7 @@ def compression():
   # Tree generation and encoding
   tree, encodingTree = constructHuffmanTree(origin_data)
   compressed = encode(encodingTree,origin_data)
-  print("Compresion rate:", math.fabs(1 - (len(comp)/len(original_text)))*100, "%")
+  print("Compresion rate:", math.fabs(1 - (len(compressed)/len(origin_data)))*100, "%")
 
   tree['999'] = zeros # save zeros in tree for future use
 
@@ -136,7 +159,13 @@ def decode(text, tree):
       node = tree
   return text[:-1]
   
-def decompression():
+def decompression(progress):
+
+  #progress bar
+  progress.grid(row=2, column=2,sticky='ew', padx=5)
+  progress.pack()
+
+  
   # get the values from the entries
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
@@ -224,6 +253,8 @@ f1 = Frame(mf, width=500, height=50)
 f1.pack(fill=X) # make all widgets as wide as the parent widget
 f2 = Frame(mf, width=500, height=50)
 f2.pack()
+f3 = Frame(mf, width=500, height=50, pady = 10)
+f3.pack()
 
 # sticky: to change the fact that widgets are centered in their cells
 # N(north), S(south), E(east), W(west)
@@ -235,9 +266,11 @@ Label(f1,text="Select destination file").grid(row=1, column=0, sticky='e')
 e[1] = Entry(f1, width=75, textvariable='') # entry for destination file
 e[1].grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
-b[0] = Button(f2, text="Compress", width=25, command=lambda: compression()) # compression button
+progress = ttk.Progressbar(f3, orient="horizontal", length=700, mode="determinate")
+
+b[0] = Button(f2, text="Compress", width=25, command=lambda: compression(progress)) # compression button
 b[0].grid(row=2, column=2,sticky='ew', padx=5)
-b[1] = Button(f2, text="Decompress", width=25, command=lambda: decompression()) # decompression button
+b[1] = Button(f2, text="Decompress", width=25, command=lambda: decompression(progress)) # decompression button
 b[1].grid(row=2, column=3, sticky='ew', padx=5)
 
 Button(f1, text="...", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
