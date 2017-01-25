@@ -8,6 +8,9 @@ import math
 zeros = 0
 encod = 'utf-8'
 num = 7
+code1 = 0
+stri1 = ''
+orig_str = ''
 
 # should be a .txt
 def writefile(filename, tree, string):
@@ -76,7 +79,7 @@ def constructHuffmanTree(text):
 # given a tree in this format: {'a':0, 'b':10, 'c':11}
 # and words being the string read from the file
 def encode(tree,words):
-  global zeros
+  global zeros, code1, stri1
   code = ''
   for let in words:
     if let in tree.keys():
@@ -87,10 +90,13 @@ def encode(tree,words):
   if len(code)%num != 0:
     code = code + '0000000'[len(code)%num:num]
 
+  code1 = code
+
   # from binary string to char string
   compressed = ''
   for i in range(0,len(code),num):
     compressed = compressed + chr(int(code[i:i+num],2) + 40)
+  stri1 = compressed
   return compressed
 
 
@@ -99,6 +105,9 @@ def encoding(file):
   # open file
   original_text = open(file, encoding=encod).read()
   original_text2 = original_text + ' '
+
+  global orig_str
+  orig_str = original_text
 
   #Constructing the tree
   #Returns 2 trees. The first tree is the one we want to introduce in the hff and the second tree is only using in the encoding
@@ -112,32 +121,35 @@ def encoding(file):
   extension = 'hff'
   ex_filename = 'result' + '.' + extension
   tree['999'] = zeros
-  #print(tree)
+  print(zeros)
   writefile(ex_filename, tree, comp)
 
 
 #Decoding function
 def decode(text, tree):
   # string to code
+  print("Compressed strings equal, ", stri1 == text)
   code = ''
   for e in text:
     auxcode = bin(ord(e)-40)[2:]
     if len(auxcode) != num:
       auxcode = '0'*(num-len(auxcode)) + auxcode
     code += auxcode
+    
+  print("Codes equal, ", code1 == code)
   code = code[:(len(code)-tree['999'])] # deleting the redundancies
-
   # code to decompressed string
   node = tree
   text = ''
   for ii in code:
-    if ii not in node:
-      return text
-    elif type(node[ii]) is dict:
+    if isinstance(node[ii], dict):
       node = node[ii]
-    elif type(node[ii]) is str:
+    elif isinstance(node[ii],str):
       text += node[ii]
       node = tree
+      if text != orig_str[:len(text)]:
+        print('sth terribly wrong', node[ii])
+        break
   return text[:-1]
 
 ## DECODING
@@ -158,6 +170,8 @@ def decoding(file):
 
   text2 = text2[i+1:] # the encoded text
   decoded = decode(text2, tree2)
+
+  print("Decompressed text equal, ", orig_str == decoded)
 
   f = open('decompressed.txt', 'w', encoding=encod)
   f.write(decoded)

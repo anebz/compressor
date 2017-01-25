@@ -72,7 +72,7 @@ def constructHuffmanTree(text):
   savedCoding['1'] = savedCoding.pop(finalKeys[1])
   return savedCoding, auxTree
 
-# given a tree and words being the string read from the file, returns a binary sequence
+# given a tree and words being the string read from the file, returns a compressed string
 def encode(tree,words):
   global zeros
   code = ''
