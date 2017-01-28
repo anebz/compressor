@@ -17,6 +17,8 @@ b = [0,0] # global variable for the buttons
 e = [0,0] # global variable for the entries
 bites = 0
 maxbites = 0
+foldername = ''
+
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 # returns a list with the frequencies of each letter in the string
@@ -104,8 +106,10 @@ def read_bytes(progress):
     # read more bytes after 100 ms
     after(100, read_bytes)
 
-def compression(progress):
+def foldercompression():
+  return
 
+def compression(progress):
   #progress bar
   global bites, maxbites
   progress.grid(row=2, column=2,sticky='ew', padx=5)
@@ -118,6 +122,11 @@ def compression(progress):
   # get the values from the entries
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
+
+  if foldername != '':
+    foldercompression()
+    return
+
   origin_data += ' '
   
   # Tree generation and encoding
@@ -160,12 +169,10 @@ def decode(text, tree):
   return text[:-1]
   
 def decompression(progress):
-
   #progress bar
   progress.grid(row=2, column=2,sticky='ew', padx=5)
   progress.pack()
 
-  
   # get the values from the entries
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
@@ -218,6 +225,27 @@ def open_origin_file():
     origin_path = filename
     e[0].delete(0, END)
     e[0].insert(0, origin_path)
+
+#open all files under dir
+def open_origin_dir():
+  global origin_path, foldername
+  dirpath = filedialog.askdirectory()
+  files = []
+  for (dirpath, dirnames, filenames) in os.walk(dirpath):
+    files = filenames
+    break
+  foldername = dirpath[dirpath.rfind('/')+1:]
+  allinfo = ''
+  for file in filenames:
+    if '.txt' in file:
+      allinfo += open(dirpath + '/' + file, 'r', encoding='utf-8').read()
+  # now we have all the strings together, we need to create the tree for all files
+  tree, encodingTree = constructHuffmanTree(allinfo)
+
+  e[0].delete(0, END)
+  e[0].insert(0, dirpath)
+  
+  
 
 def open_destination_file():
   options = {}
@@ -273,8 +301,9 @@ b[0].grid(row=2, column=2,sticky='ew', padx=5)
 b[1] = Button(f2, text="Decompress", width=25, command=lambda: decompression(progress)) # decompression button
 b[1].grid(row=2, column=3, sticky='ew', padx=5)
 
-Button(f1, text="...", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="file", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
 Button(f1, text="...", command=lambda: open_destination_file()).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="dir", command=lambda: open_origin_dir()).grid(row=0, column=35, sticky='ew', padx=8, pady=4)
 
 # do this as last thing
 root.mainloop() # so that the GUI is always waiting for input
