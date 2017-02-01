@@ -26,20 +26,27 @@ dirpath = ''
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 # returns a list with the frequencies of each letter in the string
-def frequency(string):
+def frequency(string, progress):
+  print("Calculando frecuencias")
   freq, leng = {}, len(string)
+  progress["maximum"] += len(set(string)) * 50
+  print("Aumentado el maximo por la frecuencia")
   for i in set(string):
+    progress["value"] += 50
     if string.count(i):
       freq[i] = string.count(i)*1.0/leng
   return freq
 
 # returns a list with the Huffman-encoded ASCII table
-def constructHuffmanTree(text):
-  count = frequency(text)
+def constructHuffmanTree(text, progress):
+  print("Entro en huff tree")
+  count = frequency(text, progress)
   auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
   numbers = range(len(count) - 1)
+  progress["maximum"] += len(numbers) * 50
   for ii in numbers:
+    progress["value"] += 50
     flag = 0
     auxDict = dict()
     dictValues = list(count.values())
@@ -85,11 +92,8 @@ def constructHuffmanTree(text):
 # given a tree and words being the string read from the file, returns a compressed string
 def encode(tree,words, progress):
   global zeros
-  progress.grid(row=2, column=2,sticky='ew', padx=5)
-  progress.pack()
-  progress["value"] = 0
+  print("encoding")
   maxbytes = 50000
-  progress["maximum"] = 5000
   code = ''
   counter = 0
   bites = 0
@@ -97,11 +101,10 @@ def encode(tree,words, progress):
     counter += 1
     if let in tree.keys():
       code = code + str(tree[let])
-    if counter > len(words)/100 and bites < maxbytes:
+    if counter > len(words)/100:
       counter = 0
-      bites += 500
-      progress["value"] = bites
-      
+      progress["value"] += 50
+  print("ya esta encoded")
 
   # add redundant zeroes
   zeros = num - len(code)%num
@@ -112,21 +115,14 @@ def encode(tree,words, progress):
   compressed = ''
   for i in range(0,len(code),num):
     compressed = compressed + chr(int(code[i:i+num],2) + 40)
+  print("ya esta comprimido")
   return compressed
-
-def read_bytes(progress):
-  '''simulate reading 500 bytes; update progress bar'''
-  global bites, maxbites
-  bites += 500
-  progress["value"] = bites
-  if bites < maxbites:
-    # read more bytes after 100 ms
-    after(100, read_bytes)
-
 
 def foldercompression():
   # dump tree
-  tree, encodingTree = constructHuffmanTree(allinfo)
+  progress["maximum"] = 5000
+  progress["value"] = 0
+  tree, encodingTree = constructHuffmanTree(allinfo, progress)
   f = open(destination_path, 'w', encoding='utf-8')
   json.dump(tree, f) # dump tree
   # write foldername
@@ -134,12 +130,13 @@ def foldercompression():
   # loop for all the files
   for filename in files:
     if '.txt' in filename:
-      compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read())
+      compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
       f.write('{file' + str(zeros) + ': ' + filename + '}') # writing filename and zeros at the same time
       f.write(compressed)
   
 
 def compression(progress):
+  print("hola")
   #progress bar
   global bites, maxbites, destination_path
   progress.grid(row=2, column=2,sticky='ew', padx=5)
@@ -147,20 +144,23 @@ def compression(progress):
   progress["value"] = 0
   maxbytes = 50000
   progress["maximum"] = 5000
-  read_bytes(progress)
+  
+  print("Ya esta la barra")
   
   # get the values from the entries
   destination_path = e[1].get()
 
   if foldername != '':
+    print("entro en folder")
     foldercompression()
     return
-
+  print("Leyendo archivo...")
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   origin_data += ' '
+  print("Archivo leido!")
   
   # Tree generation and encoding
-  tree, encodingTree = constructHuffmanTree(origin_data)
+  tree, encodingTree = constructHuffmanTree(origin_data, progress)
   compressed = encode(encodingTree,origin_data, progress)
   print("Compresion rate:", math.fabs(1 - (len(compressed)/len(origin_data)))*100, "%")
 
@@ -359,6 +359,8 @@ e[1] = Entry(f1, width=75, textvariable='') # entry for destination file
 e[1].grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
 progress = ttk.Progressbar(f3, orient="horizontal", length=700, mode="determinate")
+progress.grid(row=2, column=2,sticky='ew', padx=5)
+progress.pack()
 
 b[0] = Button(f2, text="Compress", width=25, command=lambda: compression(progress)) # compression button
 b[0].grid(row=2, column=2,sticky='ew', padx=5)
