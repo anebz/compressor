@@ -16,8 +16,6 @@ zeros = 0 # redundancies to be added in the code
 num = 7 # # bits to be used for encoding
 b = [0,0] # global variable for the buttons
 e = [0,0] # global variable for the entries
-bites = 0
-maxbites = 0
 foldername = ''
 allinfo = ''
 files = []
@@ -95,10 +93,8 @@ def constructHuffmanTree(text, progress):
 def encode(tree,words, progress):
   global zeros
   print("encoding")
-  maxbytes = 50000
   code = ''
   counter = 0
-  bites = 0
   for let in words:
     counter += 1
     if let in tree.keys():
@@ -144,12 +140,11 @@ def foldercompression():
 def compression(progress):
   print("hola")
   #progress bar
-  global bites, maxbites, destination_path
+  global destination_path
   progress.grid(row=2, column=2,sticky='ew', padx=5)
   progress.pack()
   progress["value"] = 0
   progress.update()
-  maxbytes = 50000
   progress["maximum"] = 5000
   
   print("Ya esta la barra")
@@ -184,10 +179,17 @@ def compression(progress):
 
 
 # ~~~~ DECOMPRESSION FUNCTIONS ~~~~
-def decode(text, tree):
+def decode(text, tree, progress):
   # string to code
+  progress["maximum"] = 90500
   code = ''
+  cont = 0
   for e in text:
+    cont += 1
+    if cont > len(text) /100:
+      progress["value"] += 100
+      progress.update()
+      cont = 0
     auxcode = bin(ord(e)-40)[2:]
     if len(auxcode) != num:
       auxcode = '0'*(num-len(auxcode)) + auxcode
@@ -197,7 +199,13 @@ def decode(text, tree):
   # code to decompressed string
   node = tree
   text = ''
+  cont = 0
   for ii in code:
+    cont += 1
+    if cont > len(code) / 800:
+      progress["value"] += 100
+      progress.update()
+      cont = 0
     if ii not in node:
       return text
     elif type(node[ii]) is dict:
@@ -211,9 +219,8 @@ def decompression(progress):
   global zeros
   
   #progress bar
-  progress.grid(row=2, column=2,sticky='ew', padx=5)
-  progress.pack()
-
+  progress["value"] = 0
+  progress.update()
   # get the values from the entries
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
@@ -262,14 +269,14 @@ def decompression(progress):
       messagebox.showinfo("Error", "Folder already exists! Choose another directory")
   else:
     zeros = tree2['999']
-    decoded = decode(text_from_file, tree2)
+    decoded = decode(text_from_file, tree2, progress)
 
     f = open(destination_path, 'w', encoding='utf-8')
     f.write(decoded)
     f.close()
-
-    #print(open('text_sample.txt', encoding='utf-8').read() == decoded)
-
+  progress["value"] = progress["maximum"]
+  progress.update()
+  messagebox.showinfo("Message", "Decompression finished")
 
 # ~~~~ GUI FUNCTIONS ~~~~
 def open_origin_file():
