@@ -33,6 +33,7 @@ def frequency(string, progress):
   print("Aumentado el maximo por la frecuencia")
   for i in set(string):
     progress["value"] += 50
+    progress.update()
     if string.count(i):
       freq[i] = string.count(i)*1.0/leng
   return freq
@@ -47,6 +48,7 @@ def constructHuffmanTree(text, progress):
   progress["maximum"] += len(numbers) * 50
   for ii in numbers:
     progress["value"] += 50
+    progress.update()
     flag = 0
     auxDict = dict()
     dictValues = list(count.values())
@@ -104,6 +106,7 @@ def encode(tree,words, progress):
     if counter > len(words)/100:
       counter = 0
       progress["value"] += 50
+      progress.update()
   print("ya esta encoded")
 
   # add redundant zeroes
@@ -173,6 +176,8 @@ def compression(progress):
   json.dump(tree, f) # dump tree
   f.write(compressed)
   f.close()
+  progress["value"] += 50
+  progress.update()
 
 
 
@@ -269,7 +274,7 @@ def open_origin_file():
   global origin_path
   options = {}
   options['filetypes'] = [('text files [.txt]', '.txt'),('Huffman-compressed files [.hff]', '.hff')]
-  options['initialdir'] = 'C:\\' + origin_path
+  options['initialdir'] = os.getcwd()
   options['title'] = 'Choose file'
   
   filename = filedialog.askopenfilename(**options)
