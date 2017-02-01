@@ -108,8 +108,10 @@ def encode(tree,words, progress):
 
   # add redundant zeroes
   zeros = num - len(code)%num
-  if len(code)%num != 0:
+  if len(code)%num != 0 and zeros != num:
     code = code + '0000000'[len(code)%num:num]
+  else:
+    zeros = 0
 
   # from binary string to char string
   compressed = ''
@@ -123,6 +125,7 @@ def foldercompression():
   progress["maximum"] = 5000
   progress["value"] = 0
   tree, encodingTree = constructHuffmanTree(allinfo, progress)
+  print(encodingTree)
   f = open(destination_path, 'w', encoding='utf-8')
   json.dump(tree, f) # dump tree
   # write foldername
@@ -156,7 +159,6 @@ def compression(progress):
     return
   print("Leyendo archivo...")
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
-  origin_data += ' '
   print("Archivo leido!")
   
   # Tree generation and encoding
@@ -196,7 +198,6 @@ def decode(text, tree):
     elif type(node[ii]) is str:
       text += node[ii]
       node = tree
-  #return text[:-1]
   return text
   
 def decompression(progress):
@@ -240,13 +241,11 @@ def decompression(progress):
 
         if text_from_file.find('{file') != -1:
           decoded = decode(text_from_file[:text_from_file.find('{file')], tree2)
-          print(decoded)
           f = open(newdir + '/' + filename, 'w', encoding='utf-8')
           f.write(decoded)
           f.close()
         else:
           decoded = decode(text_from_file, tree2)
-          print(decoded)
           f = open(newdir + '/' + filename, 'w', encoding='utf-8')
           f.write(decoded)
           f.close()

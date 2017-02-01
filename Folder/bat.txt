@@ -1,1 +1,1 @@
-bateko info
+bat
