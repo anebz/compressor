@@ -83,12 +83,25 @@ def constructHuffmanTree(text):
   return savedCoding, auxTree
 
 # given a tree and words being the string read from the file, returns a compressed string
-def encode(tree,words):
+def encode(tree,words, progress):
   global zeros
+  progress.grid(row=2, column=2,sticky='ew', padx=5)
+  progress.pack()
+  progress["value"] = 0
+  maxbytes = 50000
+  progress["maximum"] = 5000
   code = ''
+  counter = 0
+  bites = 0
   for let in words:
+    counter += 1
     if let in tree.keys():
       code = code + str(tree[let])
+    if counter > len(words)/100 and bites < maxbytes:
+      counter = 0
+      bites += 500
+      progress["value"] = bites
+      
 
   # add redundant zeroes
   zeros = num - len(code)%num
@@ -109,6 +122,7 @@ def read_bytes(progress):
   if bites < maxbites:
     # read more bytes after 100 ms
     after(100, read_bytes)
+
 
 def foldercompression():
   # dump tree
@@ -147,7 +161,7 @@ def compression(progress):
   
   # Tree generation and encoding
   tree, encodingTree = constructHuffmanTree(origin_data)
-  compressed = encode(encodingTree,origin_data)
+  compressed = encode(encodingTree,origin_data, progress)
   print("Compresion rate:", math.fabs(1 - (len(compressed)/len(origin_data)))*100, "%")
 
   tree['999'] = zeros # save zeros in tree for future use
