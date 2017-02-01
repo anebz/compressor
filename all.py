@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from tkinter import filedialog
+from tkinter import messagebox
 import operator
 import json
 import ast
@@ -17,6 +18,11 @@ b = [0,0] # global variable for the buttons
 e = [0,0] # global variable for the entries
 bites = 0
 maxbites = 0
+foldername = ''
+allinfo = ''
+files = []
+dirpath = ''
+
 
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 # returns a list with the frequencies of each letter in the string
@@ -117,14 +123,40 @@ def read_bytes(progress):
     # read more bytes after 100 ms
     after(100, read_bytes)
 
+
+def foldercompression():
+  # dump tree
+  tree, encodingTree = constructHuffmanTree(allinfo)
+  f = open(destination_path, 'w', encoding='utf-8')
+  json.dump(tree, f) # dump tree
+  # write foldername
+  f.write('{foldername: ' + foldername + '}')
+  # loop for all the files
+  for filename in files:
+    if '.txt' in filename:
+      compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read())
+      f.write('{file' + str(zeros) + ': ' + filename + '}') # writing filename and zeros at the same time
+      f.write(compressed)
+  
+
 def compression(progress):
   #progress bar
-  global bites, maxbites
-
+  global bites, maxbites, destination_path
+  progress.grid(row=2, column=2,sticky='ew', padx=5)
+  progress.pack()
+  progress["value"] = 0
+  maxbytes = 50000
+  progress["maximum"] = 5000
+  read_bytes(progress)
   
   # get the values from the entries
-  origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
+
+  if foldername != '':
+    foldercompression()
+    return
+
+  origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   origin_data += ' '
   
   # Tree generation and encoding
@@ -151,7 +183,7 @@ def decode(text, tree):
     if len(auxcode) != num:
       auxcode = '0'*(num-len(auxcode)) + auxcode
     code += auxcode
-  code = code[:(len(code)-tree['999'])] # deleting the redundancies
+  code = code[:(len(code)-zeros)] # deleting the redundancies
 
   # code to decompressed string
   node = tree
@@ -164,15 +196,16 @@ def decode(text, tree):
     elif type(node[ii]) is str:
       text += node[ii]
       node = tree
-  return text[:-1]
+  #return text[:-1]
+  return text
   
 def decompression(progress):
-
+  global zeros
+  
   #progress bar
   progress.grid(row=2, column=2,sticky='ew', padx=5)
   progress.pack()
 
-  
   # get the values from the entries
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
   destination_path = e[1].get()
@@ -191,13 +224,45 @@ def decompression(progress):
       break;
   text_from_file = text_from_file[i+1:] # the encoded text
 
-  decoded = decode(text_from_file, tree2)
+  if text_from_file[:13] == '{foldername: ': #protocol: we're in 1+ file mode
+    foldername = text_from_file[13:text_from_file.find('}')]
+    # create folder
+    newdir = destination_path[:destination_path.rfind('/')+1] + foldername
+    if not os.path.exists(newdir):
+      os.makedirs(newdir)
+      # decompress and write file for each file
+      while(1):
+        zeros = int(text_from_file[text_from_file.find('{file')+5])
+        text_from_file = text_from_file[text_from_file.find('{file')+5:]
+        lastpoint = text_from_file.find('}')
+        filename = text_from_file[3:lastpoint]
+        text_from_file = text_from_file[lastpoint+1:]
 
-  f = open(destination_path, 'w', encoding='utf-8')
-  f.write(decoded)
-  f.close()
+        if text_from_file.find('{file') != -1:
+          decoded = decode(text_from_file[:text_from_file.find('{file')], tree2)
+          print(decoded)
+          f = open(newdir + '/' + filename, 'w', encoding='utf-8')
+          f.write(decoded)
+          f.close()
+        else:
+          decoded = decode(text_from_file, tree2)
+          print(decoded)
+          f = open(newdir + '/' + filename, 'w', encoding='utf-8')
+          f.write(decoded)
+          f.close()
+          break;
 
-  print(open('text_sample.txt', encoding='utf-8').read() == decoded)
+    else:
+      messagebox.showinfo("Error", "Folder already exists! Choose another directory")
+  else:
+    zeros = tree2['999']
+    decoded = decode(text_from_file, tree2)
+
+    f = open(destination_path, 'w', encoding='utf-8')
+    f.write(decoded)
+    f.close()
+
+    #print(open('text_sample.txt', encoding='utf-8').read() == decoded)
 
 
 # ~~~~ GUI FUNCTIONS ~~~~
@@ -226,6 +291,26 @@ def open_origin_file():
     e[0].delete(0, END)
     e[0].insert(0, origin_path)
 
+#open all files under dir
+def open_origin_dir():
+  global origin_path, foldername, allinfo, files, dirpath
+  dirpath = filedialog.askdirectory()
+  files = []
+  for (dirpath, dirnames, filenames) in os.walk(dirpath):
+    files = filenames
+    break
+  foldername = dirpath[dirpath.rfind('/')+1:]
+  allinfo = ''
+  for file in files:
+    if '.txt' in file:
+      allinfo += open(dirpath + '/' + file, 'r', encoding='utf-8').read()
+  # allinfo: now we have all the strings together, we need to create the tree for all files
+
+  e[0].delete(0, END)
+  e[0].insert(0, dirpath)
+  
+  
+
 def open_destination_file():
   options = {}
   if first_ext == 'txt':
@@ -240,8 +325,8 @@ def open_destination_file():
   filename = filedialog.asksaveasfilename(**options)
   
   if filename:
-    e[0].delete(0, END)
-    e[0].insert(0, filename)
+    e[1].delete(0, END)
+    e[1].insert(0, filename)
 
 
 
@@ -280,8 +365,9 @@ b[0].grid(row=2, column=2,sticky='ew', padx=5)
 b[1] = Button(f2, text="Decompress", width=25, command=lambda: decompression(progress)) # decompression button
 b[1].grid(row=2, column=3, sticky='ew', padx=5)
 
-Button(f1, text="...", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="file", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
 Button(f1, text="...", command=lambda: open_destination_file()).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="dir", command=lambda: open_origin_dir()).grid(row=0, column=35, sticky='ew', padx=8, pady=4)
 
 # do this as last thing
 root.mainloop() # so that the GUI is always waiting for input
