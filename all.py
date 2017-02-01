@@ -148,6 +148,7 @@ def compression(progress):
   progress.grid(row=2, column=2,sticky='ew', padx=5)
   progress.pack()
   progress["value"] = 0
+  progress.update()
   maxbytes = 50000
   progress["maximum"] = 5000
   
@@ -178,6 +179,7 @@ def compression(progress):
   f.close()
   progress["value"] += 50
   progress.update()
+  messagebox.showinfo("Message", "Compression finished")
 
 
 
