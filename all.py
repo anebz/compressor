@@ -19,6 +19,7 @@ e = [0,0] # global variable for the entries
 foldername = ''
 allinfo = ''
 files = []
+dirs = []
 dirpath = ''
 
 
@@ -135,10 +136,11 @@ def foldercompression():
       compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
       f.write('{file' + str(zeros) + ': ' + filename + '}') # writing filename and zeros at the same time
       f.write(compressed)
+
+  #for (dirpath, dirnames, filenames) in os.walk(dirpath + '/' + dir):
   
 
 def compression(progress):
-  print("hola")
   #progress bar
   global destination_path
   progress.grid(row=2, column=2,sticky='ew', padx=5)
@@ -146,19 +148,13 @@ def compression(progress):
   progress["value"] = 0
   progress.update()
   progress["maximum"] = 5000
-  
-  print("Ya esta la barra")
-  
+
   # get the values from the entries
   destination_path = e[1].get()
-
   if foldername != '':
-    print("entro en folder")
     foldercompression()
     return
-  print("Leyendo archivo...")
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
-  print("Archivo leido!")
   
   # Tree generation and encoding
   tree, encodingTree = constructHuffmanTree(origin_data, progress)
@@ -306,10 +302,11 @@ def open_origin_file():
 
 #open all files under dir
 def open_origin_dir():
-  global origin_path, foldername, allinfo, files, dirpath
+  global origin_path, foldername, allinfo, files, dirpath, dirs
   dirpath = filedialog.askdirectory()
   files = []
   for (dirpath, dirnames, filenames) in os.walk(dirpath):
+    dirs = dirnames
     files = filenames
     break
   foldername = dirpath[dirpath.rfind('/')+1:]
@@ -372,8 +369,6 @@ e[1] = Entry(f1, width=75, textvariable='') # entry for destination file
 e[1].grid(row=1,column=1,padx=2,pady=1,sticky='ew',columnspan=25)
 
 progress = ttk.Progressbar(f3, orient="horizontal", length=700, mode="determinate")
-progress.grid(row=2, column=2,sticky='ew', padx=5)
-progress.pack()
 
 b[0] = Button(f2, text="Compress", width=25, command=lambda: compression(progress)) # compression button
 b[0].grid(row=2, column=2,sticky='ew', padx=5)
