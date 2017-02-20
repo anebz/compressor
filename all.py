@@ -26,10 +26,8 @@ dirpath = ''
 # ~~~~ COMPRESSION FUNCTIONS ~~~~
 # returns a list with the frequencies of each letter in the string
 def frequency(string, progress):
-  print("Calculando frecuencias")
   freq, leng = {}, len(string)
   progress["maximum"] += len(set(string)) * 50
-  print("Aumentado el maximo por la frecuencia")
   for i in set(string):
     progress["value"] += 50
     progress.update()
@@ -39,7 +37,6 @@ def frequency(string, progress):
 
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, progress):
-  print("Entro en huff tree")
   count = frequency(text, progress)
   auxTree = dict.fromkeys(count.keys(), '')
   savedCoding = dict()
@@ -93,7 +90,6 @@ def constructHuffmanTree(text, progress):
 # given a tree and words being the string read from the file, returns a compressed string
 def encode(tree,words, progress):
   global zeros
-  print("encoding")
   code = ''
   counter = 0
   for let in words:
@@ -104,7 +100,6 @@ def encode(tree,words, progress):
       counter = 0
       progress["value"] += 50
       progress.update()
-  print("ya esta encoded")
 
   # add redundant zeroes
   zeros = num - len(code)%num
@@ -117,27 +112,59 @@ def encode(tree,words, progress):
   compressed = ''
   for i in range(0,len(code),num):
     compressed = compressed + chr(int(code[i:i+num],2) + 40)
-  print("ya esta comprimido")
   return compressed
 
-def foldercompression():
-  # dump tree
-  progress["maximum"] = 5000
-  progress["value"] = 0
-  tree, encodingTree = constructHuffmanTree(allinfo, progress)
-  print(encodingTree)
-  f = open(destination_path, 'w', encoding='utf-8')
-  json.dump(tree, f) # dump tree
+
+def getallinfo(dirpath):
+  global allinfo
+  for (dirpath, dirnames, filenames) in os.walk(dirpath):
+    dirs = dirnames
+    files = filenames
+    break
+  foldername = dirpath[dirpath.rfind('/')+1:]
+  for file in files:
+    if '.txt' in file:
+      allinfo += open(dirpath + '/' + file, 'r', encoding='utf-8').read()
+  # allinfo: now we have all the strings together, we need to create the tree for all files
+  for folder in dirs:
+   getallinfo(dirpath + '/' + folder)
+
+def recursive_compression(dirpath, f, encodingTree):
+
+  for (dirpath, dirnames, filenames) in os.walk(dirpath):
+    dirs = dirnames
+    files = filenames
+    break
+  
   # write foldername
-  f.write('{foldername: ' + foldername + '}')
+  f.write('{foldername: ' + dirpath[dirpath.rfind('/')+1:] + '}') # name of folder we're in
+
+  # loop for all folders
+  for folder in dirs:
+    recursive_compression(dirpath + '/' + folder, f, encodingTree)
+  
   # loop for all the files
   for filename in files:
     if '.txt' in filename:
-      compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
       f.write('{file' + str(zeros) + ': ' + filename + '}') # writing filename and zeros at the same time
+      compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
       f.write(compressed)
+  f.write('{}') # keyword to represent end of folder
 
-  #for (dirpath, dirnames, filenames) in os.walk(dirpath + '/' + dir):
+def foldercompression():
+  global dirpath
+  # dump tree
+  progress["maximum"] = 5000
+  progress["value"] = 0
+
+  # create tree with all info from all files
+  getallinfo(dirpath)
+  tree, encodingTree = constructHuffmanTree(allinfo, progress)
+  
+  f = open(destination_path, 'w', encoding='utf-8')
+  json.dump(tree, f) # dump tree
+
+  recursive_compression(dirpath, f, encodingTree)
   
 
 def compression(progress):
@@ -151,11 +178,11 @@ def compression(progress):
 
   # get the values from the entries
   destination_path = e[1].get()
-  if foldername != '':
+  if dirpath != '':
     foldercompression()
     return
   origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
-  
+  print(origin_data)
   # Tree generation and encoding
   tree, encodingTree = constructHuffmanTree(origin_data, progress)
   compressed = encode(encodingTree,origin_data, progress)
@@ -210,6 +237,9 @@ def decode(text, tree, progress):
       text += node[ii]
       node = tree
   return text
+
+def folderdecompression(dirpath):
+  return
   
 def decompression(progress):
   global zeros
@@ -235,41 +265,45 @@ def decompression(progress):
       break;
   text_from_file = text_from_file[i+1:] # the encoded text
 
-  if text_from_file[:13] == '{foldername: ': #protocol: we're in 1+ file mode
+  # POSSIBLE BREAKPOINT
+
+  if text_from_file.startswith('{foldername: '): #protocol: we're in 1+ file mode
+    text_from_file = text_from_file[:-2] # delete the last '{}'
     foldername = text_from_file[13:text_from_file.find('}')]
     # create folder
     newdir = destination_path[:destination_path.rfind('/')+1] + foldername
-    if not os.path.exists(newdir):
-      os.makedirs(newdir)
-      # decompress and write file for each file
-      while(1):
-        zeros = int(text_from_file[text_from_file.find('{file')+5])
-        text_from_file = text_from_file[text_from_file.find('{file')+5:]
-        lastpoint = text_from_file.find('}')
-        filename = text_from_file[3:lastpoint]
-        text_from_file = text_from_file[lastpoint+1:]
-
-        if text_from_file.find('{file') != -1:
-          decoded = decode(text_from_file[:text_from_file.find('{file')], tree2)
-          f = open(newdir + '/' + filename, 'w', encoding='utf-8')
-          f.write(decoded)
-          f.close()
-        else:
-          decoded = decode(text_from_file, tree2)
-          f = open(newdir + '/' + filename, 'w', encoding='utf-8')
-          f.write(decoded)
-          f.close()
-          break;
-
-    else:
+    if os.path.exists(newdir):
       messagebox.showinfo("Error", "Folder already exists! Choose another directory")
-  else:
+      return
+    
+    # decompress and write file for each file
+    os.makedirs(newdir)
+    while(1):
+      zeros = int(text_from_file[text_from_file.find('{file')+5])
+      text_from_file = text_from_file[text_from_file.find('{file')+5:]
+      lastpoint = text_from_file.find('}')
+      filename = text_from_file[3:lastpoint]
+      text_from_file = text_from_file[lastpoint+1:]
+
+      if text_from_file.find('{file') != -1:
+        decoded = decode(text_from_file[:text_from_file.find('{file')], tree2)
+        f = open(newdir + '/' + filename, 'w', encoding='utf-8')
+        f.write(decoded)
+      else:
+        decoded = decode(text_from_file, tree2)
+        f = open(newdir + '/' + filename, 'w', encoding='utf-8')
+        f.write(decoded)
+        f.close()
+        break;
+      
+  else: #single text mode
     zeros = tree2['999']
     decoded = decode(text_from_file, tree2, progress)
 
     f = open(destination_path, 'w', encoding='utf-8')
     f.write(decoded)
     f.close()
+    
   progress["value"] = progress["maximum"]
   progress.update()
   messagebox.showinfo("Message", "Decompression finished")
@@ -300,21 +334,12 @@ def open_origin_file():
     e[0].delete(0, END)
     e[0].insert(0, origin_path)
 
+
 #open all files under dir
 def open_origin_dir():
-  global origin_path, foldername, allinfo, files, dirpath, dirs
+  global origin_path, foldername, allinfo, dirpath
   dirpath = filedialog.askdirectory()
   files = []
-  for (dirpath, dirnames, filenames) in os.walk(dirpath):
-    dirs = dirnames
-    files = filenames
-    break
-  foldername = dirpath[dirpath.rfind('/')+1:]
-  allinfo = ''
-  for file in files:
-    if '.txt' in file:
-      allinfo += open(dirpath + '/' + file, 'r', encoding='utf-8').read()
-  # allinfo: now we have all the strings together, we need to create the tree for all files
 
   e[0].delete(0, END)
   e[0].insert(0, dirpath)
