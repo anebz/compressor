@@ -91,16 +91,21 @@ def constructHuffmanTree(text, progress):
 # given a tree and words being the string read from the file, returns a compressed string
 def encode(tree, words, progress):
 	global zeros
-	code = ''
-	counter = 0
-	for let in words:
-		counter += 1
-		if let in tree.keys():
-			code = code + str(tree[let])
-		if counter > len(words) / 100:
-			counter = 0
-			progress["value"] += 50
-			progress.update()
+
+	code = ''.join(tree[c] for c in words) # replace each char by its value in the tree
+	progress["value"] += 4900
+	progress.update()
+
+#	code = ''
+#	counter = 0
+#	for let in words:
+#		counter += 1
+#		if let in tree.keys():
+#			code = code + str(tree[let])
+#		if counter > len(words) / 100:
+#			counter = 0
+#			progress["value"] += 50
+#			progress.update()
 
 	# add redundant zeroes
 	zeros = num - len(code) % num
@@ -110,9 +115,14 @@ def encode(tree, words, progress):
 		zeros = 0
 
 	# from binary string to char string
-	compressed = ''
-	for i in range(0, len(code), num):
-		compressed = compressed + chr(int(code[i:i + num], 2) + 40)
+
+	compressed = ''.join(chr(int(code[i:i+num], 2) + 40) for i in range(0, len(code), num))
+
+
+#	compressed = ''
+#	for i in range(0, len(code), num):
+#		compressed = compressed + chr(int(code[i:i+num], 2) + 40)
+
 	return compressed
 
 
@@ -149,8 +159,7 @@ def foldercompression():
 		for filename in files:
 			if '.txt' in filename:
 				f.write('{file' + str(zeros) + ': ' + filename + '}')  # writing filename and zeros at the same time
-				compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(),
-				                    progress)
+				compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
 				f.write(compressed)
 		f.write('{}')  # keyword to represent end of folder
 
