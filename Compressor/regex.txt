@@ -1,0 +1,7 @@
+\{foldername:\s(\w+)\}
+	gr1: foldername
+
+\{file(\d):\s([^}]*)\}(.+?(?={}|{file))
+	gr1: # zeroes
+	gr2: filename
+	gr3: compressed_text
