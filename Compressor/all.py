@@ -92,9 +92,9 @@ def constructHuffmanTree(text, progress):
 	finalKeys = list(savedCoding.keys())
 	for jj in range(len(finalKeys)):
 		if type(savedCoding[finalKeys[jj]]) is dict:
-			savedCoding[str(jj)] = savedCoding.pop(finalKeys[jj])
+			savedCoding[auxTree[finalKeys[jj][0]][0]] = savedCoding.pop(finalKeys[jj])
 		else:
-			savedCoding[str(jj)] = finalKeys[jj]
+			savedCoding[auxTree[finalKeys[jj][0]][0]] = finalKeys[jj]
 			savedCoding.pop(finalKeys[jj])
 	return savedCoding, auxTree
 
