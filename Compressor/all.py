@@ -283,17 +283,23 @@ def decompression(progress):
 	text_from_file = 'r' + origin_data  # to escape newline characters
 
 	# extract dict (tree) from the string read from the file
-	cnt = 0
-	for i in range(1, len(text_from_file)):
-		if text_from_file[i] == '{':
-			cnt += 1
-		elif text_from_file[i] == '}':
-			cnt -= 1
-		if cnt == 0:
-			tree2 = ast.literal_eval(text_from_file[1:i + 1])
-			break;
-	text_from_file = text_from_file[i + 1:]  # the encoded text
-
+	#cnt = 0
+	# USE REGEX (^.*?"999":.*?\})(.*)
+	#################### OLD VERSION WORKS!!
+	#for i in range(1, len(text_from_file)):
+	#	if text_from_file[i] == '{':
+	#		cnt += 1
+	#	elif text_from_file[i] == '}':
+	#		cnt -= 1
+	#	if cnt == 0:
+	#		tree2 = ast.literal_eval(text_from_file[1:i + 1])
+	#		break;
+	#text_from_file = text_from_file[i + 1:]  # the encoded text
+	################## NEW VERSION, WIP??
+	matches = re.search(r'(^.*?"999":.*?\})(.*)',text_from_file)
+	tree2 = ast.literal_eval(matches.group(1)[1:])
+	text_from_file = matches.group(2)  # the encoded text
+	#############################
 	if re.match(r"\{foldername:\s(\w+)\}", text_from_file): # 1+ file mode
 		folderdecompression(text_from_file, origin_data)
 
