@@ -58,34 +58,44 @@ def constructHuffmanTree(text, progress):
 					node1 = key
 					for jj in key:
 						auxTree[jj] = '0' + auxTree[jj]
-					if node1 in savedCoding.keys() and ii != numbers[-1]:
+					if node1 in savedCoding.keys() and len(count) > 1:
 						auxDict['0'] = savedCoding[node1]
-					elif ii != numbers[-1]:
+					elif ii != len(count) > 1:
 						auxDict['0'] = node1
 				elif flag == 2:
 					node2 = key
 					for jj in key:
 						auxTree[jj] = '1' + auxTree[jj]
-					if node2 in savedCoding.keys() and ii != numbers[-1]:
+					if node2 in savedCoding.keys() and len(count) > 1:
 						auxDict['1'] = savedCoding[node2]
-					elif ii != numbers[-1]:
+					elif len(count) > 1:
 						auxDict['1'] = node2
 					break
 		count[node1] = count[node1] + count[node2]
 		newLetter = node1 + node2
 		count[newLetter] = count[node1]
-		if ii != numbers[-1]:
-			savedCoding[newLetter] = auxDict
 		del count[node1]
 		del count[node2]
+		if len(count) > 1:
+			savedCoding[newLetter] = auxDict
+		else:
+			if len(savedCoding) < 2:
+				if node1 in savedCoding.keys():
+					savedCoding[node2] = auxTree[node2]
+				else:
+					savedCoding[node1] = auxTree[node1]
 		del auxDict
 		if node1 in savedCoding.keys() and ii != numbers[-1]:
 			del savedCoding[node1]
 		if node2 in savedCoding.keys() and ii != numbers[-1]:
 			del savedCoding[node2]
 	finalKeys = list(savedCoding.keys())
-	savedCoding['0'] = savedCoding.pop(finalKeys[0])
-	savedCoding['1'] = savedCoding.pop(finalKeys[1])  # PETA CUANDO HAY 3 LETRAS
+	for jj in range(len(finalKeys)):
+		if type(savedCoding[finalKeys[jj]]) is dict:
+			savedCoding[str(jj)] = savedCoding.pop(finalKeys[jj])
+		else:
+			savedCoding[str(jj)] = finalKeys[jj]
+			savedCoding.pop(finalKeys[jj])
 	return savedCoding, auxTree
 
 
