@@ -239,7 +239,7 @@ def decompression(progress):
 				node = tree
 		return text
 
-	def folderdecompression(text, dirpath):
+	def folderdecompression(text, dirpath): #TODO
 
 		if text.startswith('{foldername: '):
 			text = text[:-2]  # delete the last '{}'
@@ -300,7 +300,7 @@ def decompression(progress):
 	tree2 = ast.literal_eval(matches.group(1)[1:])
 	text_from_file = matches.group(2)  # the encoded text
 	#############################
-	if re.match(r"\{foldername:\s(\w+)\}", text_from_file): # 1+ file mode
+	if re.match(r'\{foldername:\s(\w+)\}', text_from_file): # 1+ file mode
 		folderdecompression(text_from_file, origin_data)
 
 	else:  # single text mode
@@ -374,7 +374,6 @@ def open_destination_file():
 
 
 	# ~~~~~~ MAIN ~~~~~~~~
-
 
 root = Tk()
 root.title('Huffman Compressor')
