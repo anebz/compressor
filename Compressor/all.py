@@ -28,6 +28,16 @@ dirpath = ''
 # returns a list with the Huffman-encoded ASCII table
 def constructHuffmanTree(text, progress):
 	# returns a list with the frequencies of each letter in the string
+	def frequencyLZW(string, progress):
+		freq, leng = {}, len(string)
+		progress["maximum"] += len(set(string)) * 50
+		for i in set(re.findall(r'([\s\S][\s\S])', string)):
+			progress["value"] += 50
+			progress.update()
+			if string.count(i):
+				freq[i] = string.count(i) * 1.0 / leng
+		return freq
+
 	def frequency(string, progress):
 		freq, leng = {}, len(string)
 		progress["maximum"] += len(set(string)) * 50
@@ -38,6 +48,7 @@ def constructHuffmanTree(text, progress):
 				freq[i] = string.count(i) * 1.0 / leng
 		return freq
 
+	#count = frequencyLZW(text, progress)
 	count = frequency(text, progress)
 	auxTree = dict.fromkeys(count.keys(), '')
 	savedCoding = dict()
@@ -163,8 +174,9 @@ def compression(progress):
 		tree, encodingTree = constructHuffmanTree(allinfo, progress)
 
 		f = open(destination_path, 'w', encoding='utf-8')
-		json.dump(tree, f)  # dump tree
-
+		finalTree = json.dumps(tree).replace(' ', '')  # dump tree
+		finalTree = finalTree.replace('""', '" "')
+		f.write(finalTree)
 		recursive_compression(dirpath, f, encodingTree)
 		messagebox.showinfo("Message", "Compression finished")
 
@@ -190,7 +202,10 @@ def compression(progress):
 	tree['999'] = zeros  # save zeros in tree for future use
 
 	f = open(destination_path, 'w', encoding='utf-8')
-	json.dump(tree, f)  # dump tree
+	#finalTree = json.dumps(tree).replace(' ', '')  # dump tree
+	#finalTree = finalTree.replace('""', '" "')
+	#f.write(finalTree)
+	json.dump(tree, f)
 	f.write(compressed)
 	f.close()
 	progress["value"] += 50
