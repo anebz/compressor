@@ -115,7 +115,6 @@ def compression(progress):
 
 	# given a tree and words being the string read from the file, returns a compressed string
 	def encode(tree, words, progress):
-		global zeros
 		# replace each char by its value in the tree (binary string)
 		code = ''.join(tree[c] for c in words)
 
@@ -132,7 +131,7 @@ def compression(progress):
 		progress["value"] += 4900
 		progress.update()
 
-		return compressed
+		return compressed, zeros
 
 	def foldercompression():
 		def getallinfo(dirpath): #TODO: use this iteration to save strings somehow?
@@ -164,8 +163,8 @@ def compression(progress):
 
 			for filename in files:  # loop for all the files
 				if '.txt' in filename:
+					compressed, zeros = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
 					f.write('{file' + str(zeros) + ': ' + filename + '}')  # writing filename and zeros at the same time
-					compressed = encode(encodingTree, open(dirpath + '/' + filename, 'r', encoding='utf-8').read(), progress)
 					f.write(compressed)
 			f.write('{}')  # keyword to represent end of folder
 
@@ -180,10 +179,11 @@ def compression(progress):
 
 		f = open(destination_path, 'w', encoding='utf-8')
 		#TODO: new addition, there needs to be a 999 in tree to decompress
-		tree['999'] = zeros  # save zeros in tree for future use
-		finalTree = json.dumps(tree).replace(' ', '')  # dump tree
-		finalTree = finalTree.replace('""', '" "')
-		f.write(finalTree)
+		tree['999'] = 0  # save zeros in tree for future use
+		#finalTree = json.dumps(tree).replace(' ', '')  # dump tree
+		#finalTree = finalTree.replace('""', '" "')
+		#f.write(finalTree)
+		json.dump(tree, f)
 		# recurisvely compress everything under current folder
 		recursive_compression(dirpath, f, encodingTree)
 		messagebox.showinfo("Message", "Compression finished")
@@ -204,7 +204,7 @@ def compression(progress):
 		return
 	origin_data = open(e[0].get(), 'r', encoding='utf-8').read()
 	tree, encodingTree = constructHuffmanTree(origin_data, progress)
-	compressed = encode(encodingTree, origin_data, progress)
+	compressed, zeros = encode(encodingTree, origin_data, progress)
 	#print("Compresion rate:", math.fabs(1 - (len(compressed) / len(origin_data))) * 100, "%")
 
 	tree['999'] = zeros  # save zeros in tree for future use
@@ -226,7 +226,8 @@ def compression(progress):
 # ~~~~ DECOMPRESSION FUNCTIONS ~~~~
 def decompression(progress):
 
-	def decode(text, tree, progress):
+	def decode(text, zeros, tree, progress):
+
 		# string to code
 		progress["maximum"] = 90500
 		code = ''
@@ -264,10 +265,9 @@ def decompression(progress):
 
 	def folderdecompression(text, dirpath, progress): #TODO
 
-		global destination_path
+		global destination_path, zeros
 
 		if text.startswith('{foldername: '):
-			text = text[:-2]  # delete the last '{}' TODO: maybe not necessary
 			foldername = text[13:text.find('}')] #TODO: regex
 			text = text[text.find('}') + 1:]
 			# create folder
@@ -280,7 +280,7 @@ def decompression(progress):
 
 			# decompress and write file for each file
 			os.makedirs(newdir)
-			while (1): #TODO regex needed!
+			while (text): #TODO regex needed!
 
 				if text.startswith("{}"):
 					# go one folder up
@@ -298,23 +298,26 @@ def decompression(progress):
 					text = text[text.find('}') + 1:] # shorten text
 
 				if text.startswith("{file"):
+
 					#TODO: regex
 					zeros = int(text[text.find('{file') + 5])
 					filename = re.findall(r'{file\d:\s([^}]+)}', text)[0]
 					text = text[text.find('}') + 1:]  # shorten text
 
 					#TODO: improvable
-					if text.find('{file') != -1:
-						decodt = text[:text.find('{')]
-						decoded = decode(decodt, tree2, progress)
-						f = open(newdir + filename, 'w', encoding='utf-8')
-						f.write(decoded)
-					else:
-						decoded = decode(text, tree2, progress)
-						f = open(newdir + filename, 'w', encoding='utf-8')
-						f.write(decoded)
-						f.close()
-						break;
+					idx = 0
+					while 1:
+						#TODO: need to check with real example
+						if text[text.find('{', idx) + 1] == 'f' or text[text.find('{', idx) + 1] == '}':
+							decodt = text[:text.find('{', idx)]
+							break
+						else:
+							idx = text.find('{', idx) + 1
+
+					decoded = decode(decodt, zeros, tree2, progress)
+					f = open(newdir + filename, 'w', encoding='utf-8')
+					f.write(decoded)
+					f.close()
 
 					# TODO: improve this
 					text = text[text.find(decodt) + len(decodt):]  # shorten text
@@ -354,7 +357,7 @@ def decompression(progress):
 
 	else:  # single text mode
 		zeros = tree2['999']
-		decoded = decode(text_from_file, tree2, progress)
+		decoded = decode(text_from_file, zeros, tree2, progress)
 
 		f = open(destination_path, 'w', encoding='utf-8')
 		f.write(decoded)
