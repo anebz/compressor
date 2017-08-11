@@ -325,6 +325,8 @@ def decompression(progress):
 
 	global zeros, destination_path
 
+	progress.grid(row=2, column=2, sticky='ew', padx=5)
+	progress.pack()
 	# progress bar
 	progress["value"] = 0
 	progress.update()
@@ -460,9 +462,9 @@ b[0].grid(row=2, column=2, sticky='ew', padx=5)
 b[1] = Button(f2, text="Decompress", width=25, command=lambda: decompression(progress))  # decompression button
 b[1].grid(row=2, column=3, sticky='ew', padx=5)
 
-Button(f1, text="file", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
+Button(f1, text="File", command=lambda: open_origin_file()).grid(row=0, column=27, sticky='ew', padx=8, pady=4)
 Button(f1, text="...", command=lambda: open_destination_file()).grid(row=1, column=27, sticky='ew', padx=8, pady=4)
-Button(f1, text="dir", command=lambda: open_origin_dir()).grid(row=0, column=35, sticky='ew', padx=8, pady=4)
+Button(f1, text="Dir", command=lambda: open_origin_dir()).grid(row=0, column=35, sticky='ew', padx=8, pady=4)
 
 # do this as last thing
 root.mainloop()  # so that the GUI is always waiting for input
