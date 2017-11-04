@@ -134,7 +134,7 @@ def compression(progress):
 		return compressed, zeros
 
 	def foldercompression():
-		def getallinfo(dirpath): #TODO: use this iteration to save strings somehow?
+		def getallinfo(dirpath): #enhancement: use this iteration to save strings somehow?
 			global allinfo
 			# go through the folder and all folders and files under it
 			for (dirpath, dirnames, filenames) in os.walk(dirpath):
@@ -150,13 +150,12 @@ def compression(progress):
 			for folder in dirs:
 				getallinfo(dirpath + '/' + folder)
 
-		def recursive_compression(dirpath, f, encodingTree): #TODO make encodingTree global? passing a whole tree recursively may not be the best idea
+		def recursive_compression(dirpath, f, encodingTree):
 			for (dirpath, dirnames, filenames) in os.walk(dirpath):
 				dirs = dirnames
 				files = filenames
 				break
 
-			# TODO: maybe change this structure {foldername: XXXX}?
 			f.write('{foldername: ' + dirpath[dirpath.rfind('/') + 1:] + '}')  # name of current folder
 			for folder in dirs:  # loop for all folders under current folder
 				recursive_compression(dirpath + '/' + folder, f, encodingTree)
@@ -169,7 +168,6 @@ def compression(progress):
 			f.write('{}')  # keyword to represent end of folder
 
 		global dirpath
-		# dump tree TODO what's this comment doing here?
 		progress["maximum"] = 5000
 		progress["value"] = 0
 
@@ -178,7 +176,6 @@ def compression(progress):
 		tree, encodingTree = constructHuffmanTree(allinfo, progress)
 
 		f = open(destination_path, 'w', encoding='utf-8')
-		#TODO: new addition, there needs to be a 999 in tree to decompress
 		tree['999'] = 0  # save zeros in tree for future use
 		#finalTree = json.dumps(tree).replace(' ', '')  # dump tree
 		#finalTree = finalTree.replace('""', '" "')
@@ -263,12 +260,12 @@ def decompression(progress):
 				node = tree
 		return text
 
-	def folderdecompression(text, dirpath, progress): #TODO
+	def folderdecompression(text, dirpath, progress):
 
 		global destination_path, zeros
 
 		if text.startswith('{foldername: '):
-			foldername = text[13:text.find('}')] #TODO: regex
+			foldername = text[13:text.find('}')] #enhancement: regex
 			text = text[text.find('}') + 1:]
 			# create folder
 			if destination_path[-1] != '/':
@@ -280,12 +277,11 @@ def decompression(progress):
 
 			# decompress and write file for each file
 			os.makedirs(newdir)
-			while (text): #TODO regex needed!
+			while (text):
 
 				if text.startswith("{}"):
 					# go one folder up
-					#TODO check this
-					newdir = newdir[:newdir.rfind('/', 0, newdir.rfind('/')) + 1]
+					newdir = newdir[:newdir.rfind('/', 0, newdir.rfind('/')) + 1] #TODO regex needed!
 					text = text[text.find('}') + 1:]  # shorten text
 
 				#first check foldernames --> list of all foldernames
