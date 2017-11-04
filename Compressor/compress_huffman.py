@@ -3,8 +3,9 @@ import json
 import re
 
 zeros = 0
-
-def compression(origin_data):
+allinfo = ''
+finalString = ''
+def compression(file):
 	# given a tree and words being the string read from the file, returns a compressed string
     def encode(tree, words):
         global zeros
@@ -33,7 +34,6 @@ def compression(origin_data):
                 if string.count(i):
                     freq[i] = string.count(i) * 1.0 / leng
             return freq
-
         # count = frequencyLZW(text, progress)
         count = frequency(text)
         auxTree = dict.fromkeys(count.keys(), '')
@@ -91,10 +91,59 @@ def compression(origin_data):
                 savedCoding[auxTree[finalKeys[jj][0]][0]] = finalKeys[jj]
                 savedCoding.pop(finalKeys[jj])
         return savedCoding, auxTree
+
+
+    def foldercompression(file):
+      global zeros
+      def getallinfo(dirpath):  # TODO: use this iteration to save strings somehow?
+        global allinfo
+        # go through the folder and all folders and files under it
+        for (dirpath, dirnames, filenames) in os.walk(dirpath):
+          dirs = dirnames
+          files = filenames
+          break
+        foldername = dirpath[dirpath.rfind('/') + 1:]
+        # allinfo: all strings from all files together, now need to create the tree for all files
+        for file in files:
+          if '.txt' in file:
+            allinfo += open(dirpath + '/' + file, 'r', encoding='utf-8').read()
+        # recursive if there is a folder below current folder
+        for folder in dirs:
+          getallinfo(dirpath + '/' + folder)
+
+      def recursive_compression(dirpath, encodingTree):  # TODO make encodingTree global? passing a whole tree recursively may not be the best idea
+        global finalString
+        for (dirpath, dirnames, filenames) in os.walk(dirpath):
+          dirs = dirnames
+          files = filenames
+          break
+
+        # TODO: maybe change this structure {foldername: XXXX}?
+        finalString += '{foldername: ' + dirpath[dirpath.rfind('/') + 1:] + '}'  # name of current folder
+        for folder in dirs:  # loop for all folders under current folder
+          recursive_compression(dirpath + '/' + folder, encodingTree)
+
+        for filename in files:  # loop for all the files
+          if '.txt' in filename:
+            data = open(dirpath + '/' + filename, 'r', encoding='utf-8').read()
+            compressed = encode(encodingTree, data)
+            finalString += '{file' + str(zeros) + ': ' + filename + '}'  # writing filename and zeros at the same time
+            finalString += compressed
+        finalString +='{}'  # keyword to represent end of folder
 	# get the values from the entries
+      global allinfo
+      getallinfo(file)
+      tree, encodingTree = constructHuffmanTree(allinfo)
+      recursive_compression(file, encodingTree)
+      return finalString, tree
     global zeros
-    tree, encodingTree = constructHuffmanTree(origin_data)
-    compressed = encode(encodingTree, origin_data)
+    if os.path.isdir(file):
+      compressed, tree = foldercompression(file)
+    else:
+      with open(file, 'r'):
+        origin_data = f.read()
+      tree, encodingTree = constructHuffmanTree(origin_data)
+      compressed = encode(encodingTree, origin_data)
     tree['999'] = zeros  # save zeros in tree for future use
     finalTree = json.dumps(tree).replace(' ', '')  # dump tree
     finalTree = finalTree.replace('""', '" "')  # dump tree
