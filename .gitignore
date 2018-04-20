@@ -4,3 +4,5 @@ Compressor/.idea/workspace.xml
 Compressor/folder22/Folder/bost.txt
 *.xml
 *.xml
+venv/
+.idea/
